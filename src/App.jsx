@@ -1,6 +1,6 @@
 // =====================================================
-// 🍷 MEISJES VAN DE WIJN - REWARDS SYSTEEM
-// PRODUCTIE VERSIE v3 - Druifjes & Nieuwe Shop
+// MEISJES VAN DE WIJN - REWARDS SYSTEEM
+// VERSIE 4 - MvdW Huisstijl
 // =====================================================
 
 import React, { useState, useEffect, createContext, useContext } from 'react';
@@ -14,49 +14,128 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // =====================================================
-// SOCIAL MEDIA LINKS - PAS DEZE AAN!
+// KLEUREN - MvdW Huisstijl
+// =====================================================
+const COLORS = {
+  darkBlue: '#1a2744',
+  mediumBlue: '#2a3a5c',
+  lightBlue: '#3d5a80',
+  white: '#ffffff',
+  lightGrey: '#f5f5f5',
+  mediumGrey: '#e0e0e0',
+  darkGrey: '#6b7280',
+  accent: '#c9a962', // goud accent
+  success: '#22c55e',
+  error: '#ef4444',
+  warning: '#f59e0b',
+};
+
+// =====================================================
+// SOCIAL MEDIA LINKS
 // =====================================================
 const SOCIAL_LINKS = {
   instagram: 'https://instagram.com/meisjesvanwijn',
-  facebook: 'https://facebook.com/meisjesvanwijn',
   linkedin: 'https://linkedin.com/company/meisjes-van-de-wijn',
   tiktok: 'https://tiktok.com/@meisjesvanwijn',
 };
 
 // =====================================================
-// SHOP ITEMS - Hardcoded voor snelle setup
+// MANIEREN OM DRUIFJES TE VERDIENEN
 // =====================================================
-const SHOP_ITEMS = [
-  // Klein (50-150 druifjes)
-  { id: 'wijnpomp', name: 'Vacuvin Wijnpomp', description: 'Houd je wijn langer vers met deze handige vacuümpomp', points: 50, category: 'klein', emoji: '🍾', popular: false },
-  { id: 'wijn', name: 'Fles Wijn naar keuze', description: 'Kies een heerlijke fles uit ons assortiment', points: 75, category: 'klein', emoji: '🍷', popular: true },
-  { id: 'active-koeler', name: 'Vacuvin Active Wijnkoeler', description: 'Houdt je wijn perfect op temperatuur', points: 100, category: 'klein', emoji: '❄️', popular: false },
-  
-  // Middel (150-400 druifjes)
-  { id: 'zieher', name: 'Zieher Wijnglazen (2st)', description: 'Prachtige design wijnglazen, set van 2', points: 150, category: 'middel', emoji: '🥂', popular: false },
-  { id: 'koeler-kistje', name: 'MvdW Wijnkoeler Houten Kistje', description: 'Stijlvolle houten wijnkoeler met MvdW logo', points: 200, category: 'middel', emoji: '🪵', popular: true },
-  { id: 'carafe', name: 'Vacuvin Swirling Carafe', description: 'Elegante decanteerkaraf voor optimale beluchting', points: 250, category: 'middel', emoji: '⚱️', popular: false },
-  { id: 'gusto', name: 'Guts & Gusto Bon €50', description: 'Shoptegoed bij Guts & Gusto', points: 300, category: 'middel', emoji: '👗', popular: false },
-  { id: 'maaltuin', name: 'Tegoedbon De Maaltuin', description: 'Heerlijk uit eten in de tuin', points: 350, category: 'middel', emoji: '🌿', popular: false },
-  
-  // Groot (400-1000 druifjes)
-  { id: 'stellae', name: 'Tickets Stellae Ligconcert', description: 'Unieke muziekbeleving onder de sterren', points: 400, category: 'groot', emoji: '🎵', popular: true },
-  { id: 'festival', name: 'Festivaltickets', description: 'Toegang tot een top festival naar keuze', points: 500, category: 'groot', emoji: '🎪', popular: true },
-  { id: 'sabreur', name: 'MvdW Sabreersabel', description: 'Officiële MvdW champagnesabel - sabrage in stijl!', points: 600, category: 'groot', emoji: '⚔️', popular: true },
-  { id: 'riedel', name: 'Riedel Wijnglazen (12st)', description: 'Complete set premium Riedel glazen', points: 750, category: 'groot', emoji: '✨', popular: false },
-  { id: 'leoleo', name: 'Dinerbon Leo Leo €100', description: 'Fine dining ervaring in Utrecht', points: 800, category: 'groot', emoji: '🍽️', popular: false },
-  { id: 'wijncursus', name: 'Wijncursus SDEN3', description: 'Professionele wijncursus bij Hart voor Wijn', points: 1000, category: 'groot', emoji: '📚', popular: false },
-  
-  // Premium (1000-3000 druifjes)
-  { id: 'klimaatkast', name: 'Wijn Klimaatkast', description: 'Bewaar je wijncollectie op de perfecte temperatuur', points: 1500, category: 'premium', emoji: '🧊', popular: false },
-  { id: 'driebergen', name: 'Kookworkshop Heeren van Driebergen', description: 'Luxe kookworkshop t.w.v. €500', points: 2000, category: 'premium', emoji: '👨‍🍳', popular: false },
-  { id: 'iphone', name: 'iPhone 15 (Refurbished)', description: 'Apple iPhone 15 in nieuwstaat', points: 2500, category: 'premium', emoji: '📱', popular: true },
-  { id: 'macbook-air', name: 'MacBook Air M1 (Refurbished)', description: 'Apple MacBook Air met M1 chip', points: 3000, category: 'premium', emoji: '💻', popular: false },
-  
-  // Ultiem (3000+ druifjes)
-  { id: 'macbook-pro', name: 'MacBook Pro M1 (Refurbished)', description: 'Apple MacBook Pro met M1 chip - het werkpaard', points: 4000, category: 'ultiem', emoji: '🖥️', popular: false },
-  { id: 'veloretti', name: 'Veloretti Caferacer', description: 'Stijlvolle Veloretti stadsfiets', points: 5000, category: 'ultiem', emoji: '🚲', popular: true },
+const EARN_METHODS = [
+  { 
+    id: 'shift', 
+    name: 'Dienst werken', 
+    points: 10, 
+    description: 'Per gewerkte dienst ontvang je 10 druifjes',
+    category: 'werk'
+  },
+  { 
+    id: 'lastminute', 
+    name: 'Last-minute dienst', 
+    points: 25, 
+    description: 'Spring je last-minute in? Dan krijg je 25 druifjes extra!',
+    category: 'werk'
+  },
+  { 
+    id: 'training-attend', 
+    name: 'Training bijwonen', 
+    points: 15, 
+    description: 'Volg een training en ontvang 15 druifjes',
+    category: 'ontwikkeling'
+  },
+  { 
+    id: 'training-give', 
+    name: 'Training geven', 
+    points: 50, 
+    description: 'Geef je zelf een training? 50 druifjes!',
+    category: 'ontwikkeling'
+  },
+  { 
+    id: 'feedback', 
+    name: 'Feedback geven', 
+    points: 10, 
+    description: 'Constructieve feedback helpt ons groeien',
+    category: 'team'
+  },
+  { 
+    id: 'referral', 
+    name: 'Collega aandragen', 
+    points: 100, 
+    description: 'Draag een nieuwe collega aan die minimaal 3 diensten werkt',
+    category: 'team'
+  },
+  { 
+    id: 'social-like', 
+    name: 'Social media interactie', 
+    points: 5, 
+    description: 'Like of reageer op onze posts',
+    category: 'social'
+  },
+  { 
+    id: 'social-story', 
+    name: 'Story delen', 
+    points: 10, 
+    description: 'Deel een story met @meisjesvanwijn tag',
+    category: 'social'
+  },
+  { 
+    id: 'social-post', 
+    name: 'Post plaatsen', 
+    points: 20, 
+    description: 'Plaats een post over MvdW op je feed',
+    category: 'social'
+  },
+  { 
+    id: 'social-video', 
+    name: 'Video content', 
+    points: 100, 
+    description: 'Maak video content voor onze socials',
+    category: 'social',
+    highValue: true
+  },
 ];
+
+// =====================================================
+// LOGO COMPONENT (SVG)
+// =====================================================
+function MvdWLogo({ size = 60, color = COLORS.white }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="50" cy="50" r="48" stroke={color} strokeWidth="2" fill="none"/>
+      <path d="M50 8 C52 8, 54 10, 54 12 C54 14, 52 16, 50 16 C48 16, 46 14, 46 12 C46 10, 48 8, 50 8" fill={color}/>
+      {[...Array(12)].map((_, i) => {
+        const angle = (i * 30 - 90) * Math.PI / 180;
+        const x = 50 + 42 * Math.cos(angle);
+        const y = 50 + 42 * Math.sin(angle);
+        return <circle key={i} cx={x} cy={y} r="4" fill={color}/>;
+      })}
+      <text x="50" y="45" textAnchor="middle" fill={color} fontSize="18" fontFamily="DM Serif Display" fontWeight="bold">MVDW</text>
+      <text x="50" y="58" textAnchor="middle" fill={color} fontSize="6" fontFamily="Poppins" letterSpacing="1">MEISJES</text>
+      <text x="50" y="66" textAnchor="middle" fill={color} fontSize="6" fontFamily="Poppins" letterSpacing="1">VAN DE WIJN</text>
+    </svg>
+  );
+}
 
 // =====================================================
 // CONTEXT
@@ -150,19 +229,40 @@ function useProfiles() {
   return { profiles };
 }
 
-function usePointActions() {
-  const [actions, setActions] = useState([]);
+function useRewards() {
+  const [rewards, setRewards] = useState([]);
   const { supabase } = useApp();
 
+  const fetch = async () => {
+    const { data } = await supabase.from('rewards').select('*').order('points', { ascending: true });
+    setRewards(data || []);
+  };
+
   useEffect(() => {
-    const fetch = async () => {
-      const { data } = await supabase.from('point_actions').select('*').eq('is_active', true);
-      setActions(data || []);
-    };
     fetch();
+    const sub = supabase.channel('rewards').on('postgres_changes', { event: '*', schema: 'public', table: 'rewards' }, fetch).subscribe();
+    return () => sub.unsubscribe();
   }, []);
 
-  return { actions };
+  const addReward = async (reward) => {
+    const { error } = await supabase.from('rewards').insert(reward);
+    if (!error) fetch();
+    return !error;
+  };
+
+  const updateReward = async (id, updates) => {
+    const { error } = await supabase.from('rewards').update(updates).eq('id', id);
+    if (!error) fetch();
+    return !error;
+  };
+
+  const deleteReward = async (id) => {
+    const { error } = await supabase.from('rewards').delete().eq('id', id);
+    if (!error) fetch();
+    return !error;
+  };
+
+  return { rewards, addReward, updateReward, deleteReward, refetch: fetch };
 }
 
 function useActivities(userId) {
@@ -242,7 +342,7 @@ function useSocialClaims() {
     await supabase.from('notifications').insert({
       user_id: claim.user_id,
       type: 'points',
-      title: `+${points} druifjes goedgekeurd! 🍇`,
+      title: `+${points} druifjes goedgekeurd!`,
       message: claim.description
     });
 
@@ -283,20 +383,18 @@ function useRewardClaims() {
   }, [profile]);
 
   const createClaim = async (rewardId, rewardName, pointsCost) => {
-    // Store reward info in the claim since we're using hardcoded items
     const { error } = await supabase.from('claims').insert({
       user_id: profile.id,
-      reward_id: rewardId, // This will be the string ID
+      reward_id: rewardId,
       points_cost: pointsCost,
       status: 'pending'
     });
     
-    // Also add a note about what they claimed
     if (!error) {
       await supabase.from('notifications').insert({
         user_id: profile.id,
         type: 'claim',
-        title: '🛍️ Claim ingediend!',
+        title: 'Claim ingediend!',
         message: `Je hebt ${rewardName} aangevraagd voor ${pointsCost} druifjes`
       });
     }
@@ -304,7 +402,7 @@ function useRewardClaims() {
     return !error;
   };
 
-  const updateClaim = async (claimId, status, rewardName, userId) => {
+  const updateClaim = async (claimId, status, rewardName) => {
     const claim = claims.find(c => c.id === claimId);
     
     await supabase.from('claims').update({ 
@@ -317,7 +415,7 @@ function useRewardClaims() {
       await supabase.from('notifications').insert({
         user_id: claim.user_id,
         type: 'claim',
-        title: '🎉 Beloning goedgekeurd!',
+        title: 'Beloning goedgekeurd!',
         message: `Je ${rewardName || 'beloning'} is goedgekeurd en wordt geregeld!`
       });
     }
@@ -381,7 +479,7 @@ function useReferrals() {
     await supabase.from('notifications').insert({
       user_id: referral.referrer_id,
       type: 'points',
-      title: '+100 druifjes! 🍇',
+      title: '+100 druifjes!',
       message: `Referral ${referral.colleague_name} voltooid!`
     });
 
@@ -407,17 +505,18 @@ function useRecognitions() {
     fetch();
   }, [profile]);
 
-  const getQuarter = () => `Q${Math.ceil((new Date().getMonth() + 1) / 3)}-${new Date().getFullYear()}`;
+  // Maandelijks ipv kwartaal
+  const getMonth = () => `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
   
-  const canGive = () => !recognitions.find(r => r.from_user_id === profile?.id && r.quarter === getQuarter());
+  const canGive = () => !recognitions.find(r => r.from_user_id === profile?.id && r.quarter === getMonth());
 
   const give = async (toUserId, toUserName) => {
-    const quarter = getQuarter();
+    const month = getMonth();
     
     await supabase.from('recognitions').insert({
       from_user_id: profile.id,
       to_user_id: toUserId,
-      quarter,
+      quarter: month,
       points: 20
     });
 
@@ -432,7 +531,7 @@ function useRecognitions() {
     await supabase.from('notifications').insert({
       user_id: toUserId,
       type: 'recognition',
-      title: '❤️ Je bent gewaardeerd!',
+      title: 'Je bent gewaardeerd!',
       message: `${profile.name} heeft je 20 druifjes gegeven`
     });
 
@@ -440,33 +539,6 @@ function useRecognitions() {
   };
 
   return { recognitions, canGive, give };
-}
-
-function useWishlist() {
-  const [wishlist, setWishlist] = useState([]);
-  const { profile } = useApp();
-
-  // Local storage based wishlist for hardcoded items
-  useEffect(() => {
-    if (profile) {
-      const stored = localStorage.getItem(`wishlist_${profile.id}`);
-      setWishlist(stored ? JSON.parse(stored) : []);
-    }
-  }, [profile]);
-
-  const toggle = (itemId) => {
-    const newList = wishlist.includes(itemId) 
-      ? wishlist.filter(id => id !== itemId)
-      : [...wishlist, itemId];
-    setWishlist(newList);
-    if (profile) {
-      localStorage.setItem(`wishlist_${profile.id}`, JSON.stringify(newList));
-    }
-  };
-
-  const isWishlisted = (id) => wishlist.includes(id);
-
-  return { wishlist, toggle, isWishlisted };
 }
 
 function useNotifications() {
@@ -505,10 +577,9 @@ function useNotifications() {
 function useAdminPoints() {
   const { supabase, profile } = useApp();
 
-  const addPoints = async (userId, actionId, actionName, points, isHighValue = false) => {
+  const addPoints = async (userId, actionName, points, isHighValue = false) => {
     await supabase.from('activities').insert({
       user_id: userId,
-      action_id: actionId,
       action_name: actionName,
       points,
       is_high_value: isHighValue,
@@ -519,7 +590,7 @@ function useAdminPoints() {
     await supabase.from('notifications').insert({
       user_id: userId,
       type: 'points',
-      title: `+${points} druifjes! 🍇`,
+      title: `+${points} druifjes!`,
       message: actionName
     });
 
@@ -556,26 +627,12 @@ function AuthScreen() {
 
   return (
     <div style={styles.authScreen}>
-      {/* Animated grapes background */}
-      <div style={styles.grapesBackground}>
-        {[...Array(12)].map((_, i) => (
-          <span key={i} style={{
-            ...styles.floatingGrape,
-            left: `${Math.random() * 100}%`,
-            animationDelay: `${Math.random() * 5}s`,
-            animationDuration: `${15 + Math.random() * 10}s`,
-            opacity: 0.1 + Math.random() * 0.15,
-            fontSize: `${1.5 + Math.random() * 2}rem`
-          }}>🍇</span>
-        ))}
-      </div>
-
       <div style={styles.authContainer}>
         <div style={styles.authHeader}>
           <div style={styles.authLogoWrap}>
-            <span style={styles.authLogo}>🍇</span>
+            <MvdWLogo size={80} color={COLORS.white} />
           </div>
-          <h1 style={styles.authTitle}>MvdW Rewards</h1>
+          <h1 style={styles.authTitle}>Rewards</h1>
           <p style={styles.authSubtitle}>Spaar druifjes, kies beloningen</p>
         </div>
 
@@ -593,19 +650,18 @@ function AuthScreen() {
             <input type="password" placeholder="Wachtwoord" value={password} onChange={e => setPassword(e.target.value)} required minLength={6} style={styles.authInput} />
             {error && <p style={styles.authError}>{error}</p>}
             <button type="submit" disabled={loading} style={styles.authButton}>
-              {loading ? '⏳' : mode === 'login' ? 'Inloggen' : 'Account aanmaken'}
+              {loading ? 'Even geduld...' : mode === 'login' ? 'Inloggen' : 'Account aanmaken'}
             </button>
           </form>
         </div>
 
         {/* Social Links */}
         <div style={styles.authSocials}>
-          <p style={styles.authSocialsLabel}>Volg ons:</p>
+          <p style={styles.authSocialsLabel}>Volg ons</p>
           <div style={styles.authSocialLinks}>
-            <a href={SOCIAL_LINKS.instagram} target="_blank" rel="noopener noreferrer" style={styles.authSocialLink}>📸</a>
-            <a href={SOCIAL_LINKS.facebook} target="_blank" rel="noopener noreferrer" style={styles.authSocialLink}>👍</a>
-            <a href={SOCIAL_LINKS.linkedin} target="_blank" rel="noopener noreferrer" style={styles.authSocialLink}>💼</a>
-            <a href={SOCIAL_LINKS.tiktok} target="_blank" rel="noopener noreferrer" style={styles.authSocialLink}>🎵</a>
+            <a href={SOCIAL_LINKS.instagram} target="_blank" rel="noopener noreferrer" style={styles.authSocialLink}>Instagram</a>
+            <a href={SOCIAL_LINKS.linkedin} target="_blank" rel="noopener noreferrer" style={styles.authSocialLink}>LinkedIn</a>
+            <a href={SOCIAL_LINKS.tiktok} target="_blank" rel="noopener noreferrer" style={styles.authSocialLink}>TikTok</a>
           </div>
         </div>
 
@@ -616,19 +672,13 @@ function AuthScreen() {
 }
 
 // =====================================================
-// SOCIAL SECTION COMPONENT
+// EARN SECTION COMPONENT
 // =====================================================
-function SocialSection({ onSubmitClaim, myClaims }) {
+function EarnSection({ onSubmitClaim, myClaims }) {
   const [showForm, setShowForm] = useState(null);
   const [description, setDescription] = useState('');
 
-  const socialActions = [
-    { id: 'like', emoji: '👍', name: 'Like/Comment', points: 5, desc: 'Like of reageer op een MvdW post' },
-    { id: 'story', emoji: '📱', name: 'Story', points: 10, desc: 'Deel een story met @meisjesvanwijn tag' },
-    { id: 'post', emoji: '📸', name: 'Feed Post', points: 20, desc: 'Plaats een post over MvdW op je feed' },
-    { id: 'video', emoji: '🎬', name: 'Video Content', points: 100, desc: 'Maak video content voor onze socials', highValue: true },
-  ];
-
+  const socialActions = EARN_METHODS.filter(m => m.category === 'social');
   const pendingCount = (type) => myClaims?.filter(c => c.description?.includes(`[${type}]`) && c.status === 'pending').length || 0;
 
   const handleSubmit = async (action) => {
@@ -640,74 +690,99 @@ function SocialSection({ onSubmitClaim, myClaims }) {
     }
   };
 
+  const categories = [
+    { id: 'werk', title: 'Werk', icon: 'W' },
+    { id: 'ontwikkeling', title: 'Ontwikkeling', icon: 'O' },
+    { id: 'team', title: 'Team', icon: 'T' },
+    { id: 'social', title: 'Social Media', icon: 'S' },
+  ];
+
   return (
-    <div style={styles.socialSection}>
-      {/* Platform Links */}
-      <div style={styles.platformLinks}>
-        <h3 style={styles.sectionTitle}>📱 Onze Socials</h3>
-        <p style={styles.sectionDesc}>Klik om direct naar onze pagina te gaan</p>
-        <div style={styles.platformGrid}>
-          <a href={SOCIAL_LINKS.instagram} target="_blank" rel="noopener noreferrer" style={styles.platformCard}>
-            <span style={styles.platformIcon}>📸</span>
-            <span style={styles.platformName}>Instagram</span>
-            <span style={styles.platformHandle}>@meisjesvanwijn</span>
-          </a>
-          <a href={SOCIAL_LINKS.facebook} target="_blank" rel="noopener noreferrer" style={styles.platformCard}>
-            <span style={styles.platformIcon}>👍</span>
-            <span style={styles.platformName}>Facebook</span>
-            <span style={styles.platformHandle}>Meisjes van de Wijn</span>
-          </a>
-          <a href={SOCIAL_LINKS.linkedin} target="_blank" rel="noopener noreferrer" style={styles.platformCard}>
-            <span style={styles.platformIcon}>💼</span>
-            <span style={styles.platformName}>LinkedIn</span>
-            <span style={styles.platformHandle}>Company page</span>
-          </a>
-          <a href={SOCIAL_LINKS.tiktok} target="_blank" rel="noopener noreferrer" style={styles.platformCard}>
-            <span style={styles.platformIcon}>🎵</span>
-            <span style={styles.platformName}>TikTok</span>
-            <span style={styles.platformHandle}>@meisjesvanwijn</span>
-          </a>
+    <div style={styles.earnSection}>
+      {/* Info banner */}
+      <div style={styles.infoBanner}>
+        <div style={styles.infoBannerIcon}>i</div>
+        <div>
+          <strong>Hoe werkt het?</strong>
+          <p style={styles.infoBannerText}>
+            Wij kennen eens per maand de druifjes toe op basis van je gewerkte diensten, trainingen en andere activiteiten. 
+            Social media claims kun je zelf indienen - wij controleren en keuren goed.
+          </p>
         </div>
       </div>
 
-      {/* Earn Points */}
-      <div style={styles.earnSection}>
-        <h3 style={styles.sectionTitle}>🍇 Druifjes Verdienen</h3>
-        <p style={styles.sectionDesc}>Meld je actie aan → wij controleren → jij krijgt druifjes!</p>
-        
-        <div style={styles.actionGrid}>
-          {socialActions.map(action => (
-            <div key={action.id} style={action.highValue ? styles.actionCardHV : styles.actionCard}>
-              {action.highValue && <span style={styles.hvBadgeSmall}>HIGH VALUE</span>}
-              <span style={styles.actionEmoji}>{action.emoji}</span>
-              <span style={styles.actionName}>{action.name}</span>
-              <span style={styles.actionPoints}>+{action.points} 🍇</span>
-              <span style={styles.actionDesc}>{action.desc}</span>
-              
-              {pendingCount(action.id) > 0 && (
-                <span style={styles.pendingBadge}>⏳ {pendingCount(action.id)} in review</span>
-              )}
-              
-              <button onClick={() => setShowForm(showForm === action.id ? null : action.id)} style={styles.actionBtn}>
-                {showForm === action.id ? '✕ Sluiten' : '+ Aanmelden'}
-              </button>
+      {/* Alle manieren per categorie */}
+      {categories.map(cat => (
+        <div key={cat.id} style={styles.earnCategory}>
+          <h3 style={styles.earnCategoryTitle}>
+            <span style={styles.earnCategoryIcon}>{cat.icon}</span>
+            {cat.title}
+          </h3>
+          
+          <div style={styles.earnList}>
+            {EARN_METHODS.filter(m => m.category === cat.id).map(method => (
+              <div key={method.id} style={method.highValue ? styles.earnItemHV : styles.earnItem}>
+                {method.highValue && <span style={styles.hvBadge}>HIGH VALUE</span>}
+                <div style={styles.earnItemContent}>
+                  <div style={styles.earnItemHeader}>
+                    <span style={styles.earnItemName}>{method.name}</span>
+                    <span style={styles.earnItemPoints}>+{method.points}</span>
+                  </div>
+                  <p style={styles.earnItemDesc}>{method.description}</p>
+                  
+                  {/* Alleen social items kunnen zelf geclaimed worden */}
+                  {method.category === 'social' && (
+                    <>
+                      {pendingCount(method.id) > 0 && (
+                        <span style={styles.pendingBadge}>{pendingCount(method.id)} in review</span>
+                      )}
+                      
+                      <button 
+                        onClick={() => setShowForm(showForm === method.id ? null : method.id)} 
+                        style={styles.claimSmallBtn}
+                      >
+                        {showForm === method.id ? 'Sluiten' : 'Aanmelden'}
+                      </button>
 
-              {showForm === action.id && (
-                <div style={styles.actionForm}>
-                  <textarea
-                    placeholder={`Beschrijf kort wat je hebt gedaan...\n\nBijv: "Gereageerd op de Lakedance post" of "Story gedeeld van wijnproeverij"`}
-                    value={description}
-                    onChange={e => setDescription(e.target.value)}
-                    style={styles.actionTextarea}
-                    rows={3}
-                  />
-                  <button onClick={() => handleSubmit(action)} style={styles.submitBtn} disabled={!description.trim()}>
-                    📤 Versturen ter controle
-                  </button>
+                      {showForm === method.id && (
+                        <div style={styles.claimForm}>
+                          <textarea
+                            placeholder="Beschrijf kort wat je hebt gedaan..."
+                            value={description}
+                            onChange={e => setDescription(e.target.value)}
+                            style={styles.claimTextarea}
+                            rows={3}
+                          />
+                          <button onClick={() => handleSubmit(method)} style={styles.submitBtn} disabled={!description.trim()}>
+                            Versturen ter controle
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
-              )}
-            </div>
-          ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+
+      {/* Social Links */}
+      <div style={styles.socialLinksSection}>
+        <h3 style={styles.sectionTitle}>Onze Socials</h3>
+        <div style={styles.socialLinksGrid}>
+          <a href={SOCIAL_LINKS.instagram} target="_blank" rel="noopener noreferrer" style={styles.socialLinkCard}>
+            <span style={styles.socialLinkName}>Instagram</span>
+            <span style={styles.socialLinkHandle}>@meisjesvanwijn</span>
+          </a>
+          <a href={SOCIAL_LINKS.linkedin} target="_blank" rel="noopener noreferrer" style={styles.socialLinkCard}>
+            <span style={styles.socialLinkName}>LinkedIn</span>
+            <span style={styles.socialLinkHandle}>Meisjes van de Wijn</span>
+          </a>
+          <a href={SOCIAL_LINKS.tiktok} target="_blank" rel="noopener noreferrer" style={styles.socialLinkCard}>
+            <span style={styles.socialLinkName}>TikTok</span>
+            <span style={styles.socialLinkHandle}>@meisjesvanwijn</span>
+          </a>
         </div>
       </div>
     </div>
@@ -715,28 +790,11 @@ function SocialSection({ onSubmitClaim, myClaims }) {
 }
 
 // =====================================================
-// BEAUTIFUL SHOP COMPONENT
+// SHOP COMPONENT
 // =====================================================
-function BeautifulShop({ profile, claims, onClaim, wishlist }) {
-  const [filter, setFilter] = useState('all');
+function Shop({ rewards, profile, claims, onClaim }) {
   const [selectedReward, setSelectedReward] = useState(null);
   const [claimSuccess, setClaimSuccess] = useState(false);
-
-  const categories = [
-    { id: 'all', label: '✨ Alles', color: '#8b5cf6' },
-    { id: 'klein', label: '🎁 Klein', color: '#22c55e' },
-    { id: 'middel', label: '🎯 Middel', color: '#f59e0b' },
-    { id: 'groot', label: '🏆 Groot', color: '#ec4899' },
-    { id: 'premium', label: '💎 Premium', color: '#6366f1' },
-    { id: 'ultiem', label: '🚀 Ultiem', color: '#ef4444' },
-    { id: 'wishlist', label: '❤️ Wishlist', color: '#ec4899' },
-  ];
-
-  const filteredRewards = SHOP_ITEMS.filter(r => {
-    if (filter === 'all') return true;
-    if (filter === 'wishlist') return wishlist.isWishlisted(r.id);
-    return r.category === filter;
-  });
 
   const isPending = (rewardId) => claims.find(c => c.reward_id === rewardId && c.status === 'pending');
   const canAfford = (points) => profile.points >= points;
@@ -753,172 +811,107 @@ function BeautifulShop({ profile, claims, onClaim, wishlist }) {
     }
   };
 
-  const getCategoryColor = (cat) => {
-    const colors = {
-      klein: '#22c55e',
-      middel: '#f59e0b',
-      groot: '#ec4899',
-      premium: '#6366f1',
-      ultiem: '#ef4444'
-    };
-    return colors[cat] || '#8b5cf6';
-  };
+  const activeRewards = rewards.filter(r => r.is_active !== false);
 
   return (
     <div style={styles.shopContainer}>
       {/* Header */}
       <div style={styles.shopHeader}>
         <div>
-          <h2 style={styles.shopTitle}>🛍️ Beloningen Shop</h2>
-          <p style={styles.shopSubtitle}>Wissel je druifjes in voor gave beloningen</p>
+          <h2 style={styles.pageTitle}>Shop</h2>
+          <p style={styles.pageSubtitle}>Wissel je druifjes in voor beloningen</p>
         </div>
         <div style={styles.shopBalance}>
-          <span style={styles.shopBalanceIcon}>🍇</span>
-          <div>
-            <span style={styles.shopBalanceValue}>{profile.points}</span>
-            <span style={styles.shopBalanceLabel}>druifjes</span>
-          </div>
+          <span style={styles.shopBalanceLabel}>Jouw saldo</span>
+          <span style={styles.shopBalanceValue}>{profile.points}</span>
+          <span style={styles.shopBalanceUnit}>druifjes</span>
         </div>
       </div>
 
-      {/* Filters */}
-      <div style={styles.shopFilters}>
-        {categories.map(cat => (
-          <button
-            key={cat.id}
-            onClick={() => setFilter(cat.id)}
-            style={{
-              ...styles.shopFilterBtn,
-              ...(filter === cat.id ? { background: cat.color, color: '#fff', borderColor: cat.color } : {})
-            }}
-          >
-            {cat.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Products Grid */}
-      <div style={styles.shopGrid}>
-        {filteredRewards.map((reward, index) => {
-          const affordable = canAfford(reward.points);
-          const pending = isPending(reward.id);
-          const wishlisted = wishlist.isWishlisted(reward.id);
-          const progress = Math.min(100, (profile.points / reward.points) * 100);
-          
-          return (
-            <div 
-              key={reward.id} 
-              style={{
-                ...styles.productCard,
-                animationDelay: `${index * 0.05}s`,
-              }}
-            >
-              {/* Category ribbon */}
-              <div style={{
-                ...styles.categoryRibbon,
-                background: getCategoryColor(reward.category)
-              }}>
-                {reward.category}
-              </div>
-
-              {/* Badges */}
-              {reward.popular && <span style={styles.popularBadge}>🔥 Populair</span>}
-
-              {/* Wishlist */}
-              <button onClick={() => wishlist.toggle(reward.id)} style={styles.wishlistBtn}>
-                {wishlisted ? '❤️' : '🤍'}
-              </button>
-
-              {/* Image/Emoji */}
-              <div style={styles.productVisual}>
-                <span style={styles.productEmoji}>{reward.emoji}</span>
-                <div style={{
-                  ...styles.productGlow,
-                  background: `radial-gradient(circle, ${getCategoryColor(reward.category)}40 0%, transparent 70%)`
-                }} />
-              </div>
-
-              {/* Info */}
-              <div style={styles.productInfo}>
-                <h3 style={styles.productName}>{reward.name}</h3>
-                <p style={styles.productDesc}>{reward.description}</p>
-              </div>
-
-              {/* Price & Action */}
-              <div style={styles.productFooter}>
-                <div style={styles.productPrice}>
-                  <span style={styles.priceValue}>{reward.points}</span>
-                  <span style={styles.priceGrape}>🍇</span>
+      {activeRewards.length === 0 ? (
+        <div style={styles.emptyState}>
+          <p>Er zijn nog geen beloningen beschikbaar.</p>
+          <p style={styles.emptyStateSmall}>De admin kan beloningen toevoegen via het admin panel.</p>
+        </div>
+      ) : (
+        <div style={styles.shopGrid}>
+          {activeRewards.map((reward) => {
+            const affordable = canAfford(reward.points);
+            const pending = isPending(reward.id);
+            const progress = Math.min(100, (profile.points / reward.points) * 100);
+            
+            return (
+              <div key={reward.id} style={styles.productCard}>
+                {/* Image */}
+                <div style={styles.productImageWrap}>
+                  {reward.image_url ? (
+                    <img src={reward.image_url} alt={reward.name} style={styles.productImage} />
+                  ) : (
+                    <div style={styles.productImagePlaceholder}>
+                      <span style={styles.productImagePlaceholderText}>{reward.name?.charAt(0) || '?'}</span>
+                    </div>
+                  )}
                 </div>
 
-                {pending ? (
-                  <div style={styles.pendingStatus}>
-                    <span>⏳ Aangevraagd</span>
+                {/* Info */}
+                <div style={styles.productInfo}>
+                  <span style={styles.productCategory}>{reward.category}</span>
+                  <h3 style={styles.productName}>{reward.name}</h3>
+                  <p style={styles.productDesc}>{reward.description}</p>
+                </div>
+
+                {/* Price & Action */}
+                <div style={styles.productFooter}>
+                  <div style={styles.productPrice}>
+                    <span style={styles.priceValue}>{reward.points}</span>
+                    <span style={styles.priceUnit}>druifjes</span>
                   </div>
-                ) : affordable ? (
-                  <button onClick={() => setSelectedReward(reward)} style={styles.claimBtn}>
-                    Claim! →
-                  </button>
-                ) : (
-                  <div style={styles.needMore}>
-                    <span>Nog {reward.points - profile.points} 🍇</span>
+
+                  {pending ? (
+                    <div style={styles.pendingStatus}>Aangevraagd</div>
+                  ) : affordable ? (
+                    <button onClick={() => setSelectedReward(reward)} style={styles.claimBtn}>
+                      Claim
+                    </button>
+                  ) : (
+                    <div style={styles.needMore}>
+                      Nog {reward.points - profile.points} nodig
+                    </div>
+                  )}
+                </div>
+
+                {/* Progress bar */}
+                {!affordable && !pending && (
+                  <div style={styles.progressBarWrap}>
+                    <div style={{...styles.progressBarFill, width: `${progress}%`}} />
                   </div>
                 )}
               </div>
-
-              {/* Progress bar */}
-              {!affordable && !pending && (
-                <div style={styles.progressBarWrap}>
-                  <div style={{
-                    ...styles.progressBarFill,
-                    width: `${progress}%`,
-                    background: `linear-gradient(90deg, ${getCategoryColor(reward.category)}, ${getCategoryColor(reward.category)}99)`
-                  }} />
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      {filteredRewards.length === 0 && (
-        <div style={styles.emptyShop}>
-          <span style={styles.emptyEmoji}>🍇</span>
-          <p>Geen items in deze categorie</p>
+            );
+          })}
         </div>
       )}
 
       {/* Claim Modal */}
       {selectedReward && (
         <div style={styles.modalOverlay} onClick={() => !claimSuccess && setSelectedReward(null)}>
-          <div style={styles.claimModal} onClick={e => e.stopPropagation()}>
+          <div style={styles.modal} onClick={e => e.stopPropagation()}>
             {claimSuccess ? (
               <div style={styles.successAnimation}>
-                <div style={styles.successConfetti}>
-                  {[...Array(20)].map((_, i) => (
-                    <span key={i} style={{
-                      ...styles.confettiPiece,
-                      left: `${10 + Math.random() * 80}%`,
-                      animationDelay: `${Math.random() * 0.5}s`,
-                      background: ['#8b5cf6', '#22c55e', '#f59e0b', '#ec4899', '#6366f1'][Math.floor(Math.random() * 5)]
-                    }} />
-                  ))}
-                </div>
-                <span style={styles.successEmoji}>🎉</span>
+                <div style={styles.successIcon}>✓</div>
                 <h3 style={styles.successTitle}>Aangevraagd!</h3>
-                <p style={styles.successText}>We regelen je {selectedReward.name}!</p>
+                <p style={styles.successText}>We regelen je {selectedReward.name}</p>
               </div>
             ) : (
               <>
                 <div style={styles.modalHeader}>
-                  <div style={styles.modalEmojiWrap}>
-                    <span style={styles.modalEmoji}>{selectedReward.emoji}</span>
-                  </div>
+                  {selectedReward.image_url ? (
+                    <img src={selectedReward.image_url} alt={selectedReward.name} style={styles.modalImage} />
+                  ) : (
+                    <div style={styles.modalImagePlaceholder}>{selectedReward.name?.charAt(0)}</div>
+                  )}
                   <div>
-                    <span style={{
-                      ...styles.modalCategory,
-                      color: getCategoryColor(selectedReward.category)
-                    }}>{selectedReward.category}</span>
+                    <span style={styles.modalCategory}>{selectedReward.category}</span>
                     <h3 style={styles.modalTitle}>{selectedReward.name}</h3>
                   </div>
                 </div>
@@ -928,20 +921,17 @@ function BeautifulShop({ profile, claims, onClaim, wishlist }) {
                 <div style={styles.modalPriceBox}>
                   <div style={styles.modalPriceRow}>
                     <span>Kosten</span>
-                    <span style={styles.modalPriceValue}>{selectedReward.points} 🍇</span>
+                    <span style={styles.modalPriceValue}>{selectedReward.points} druifjes</span>
                   </div>
                   <div style={styles.modalPriceRow}>
-                    <span>Je saldo</span>
-                    <span>{profile.points} 🍇</span>
+                    <span>Jouw saldo</span>
+                    <span>{profile.points} druifjes</span>
                   </div>
                   <div style={styles.modalDivider} />
                   <div style={styles.modalPriceRow}>
                     <span>Na claim</span>
-                    <span style={{
-                      color: profile.points - selectedReward.points >= 0 ? '#22c55e' : '#ef4444',
-                      fontWeight: 700
-                    }}>
-                      {profile.points - selectedReward.points} 🍇
+                    <span style={{ color: COLORS.success, fontWeight: 700 }}>
+                      {profile.points - selectedReward.points} druifjes
                     </span>
                   </div>
                 </div>
@@ -951,10 +941,462 @@ function BeautifulShop({ profile, claims, onClaim, wishlist }) {
                     Annuleren
                   </button>
                   <button onClick={handleClaim} style={styles.modalConfirm}>
-                    🍇 Claim deze beloning!
+                    Bevestig claim
                   </button>
                 </div>
               </>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// =====================================================
+// ADMIN PANEL COMPONENT
+// =====================================================
+function AdminPanel({ 
+  profiles, 
+  socialClaims, 
+  rewardClaims, 
+  referrals, 
+  rewards,
+  onApproveSocial, 
+  onRejectSocial, 
+  onApproveReward,
+  onRejectReward,
+  onUpdateReferral,
+  onCompleteReferral,
+  onAddPoints,
+  onAddReward,
+  onUpdateReward,
+  onDeleteReward,
+  refreshProfile
+}) {
+  const [tab, setTab] = useState('social');
+  const [selectedUser, setSelectedUser] = useState('');
+  const [selectedAction, setSelectedAction] = useState('');
+  const [customPoints, setCustomPoints] = useState('');
+  const [customAction, setCustomAction] = useState('');
+  
+  // Product form
+  const [showProductForm, setShowProductForm] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [productForm, setProductForm] = useState({
+    name: '', description: '', points: '', category: '', image_url: ''
+  });
+
+  const pendingSocial = socialClaims.filter(c => c.status === 'pending');
+  const pendingRewards = rewardClaims.filter(c => c.status === 'pending');
+  const pendingReferrals = referrals.filter(r => r.status !== 'completed' && r.status !== 'rejected');
+
+  const handleAddPoints = async () => {
+    if (!selectedUser || (!selectedAction && !customPoints)) return;
+    
+    let points, actionName;
+    if (customPoints && customAction) {
+      points = parseInt(customPoints);
+      actionName = customAction;
+    } else {
+      const method = EARN_METHODS.find(m => m.id === selectedAction);
+      points = method.points;
+      actionName = method.name;
+    }
+    
+    const user = profiles.find(p => p.id === selectedUser);
+    await onAddPoints(selectedUser, actionName, points);
+    setSelectedUser('');
+    setSelectedAction('');
+    setCustomPoints('');
+    setCustomAction('');
+    refreshProfile();
+  };
+
+  const handleSaveProduct = async () => {
+    const data = {
+      name: productForm.name,
+      description: productForm.description,
+      points: parseInt(productForm.points),
+      category: productForm.category,
+      image_url: productForm.image_url || null,
+      is_active: true
+    };
+
+    if (editingProduct) {
+      await onUpdateReward(editingProduct.id, data);
+    } else {
+      await onAddReward(data);
+    }
+
+    setProductForm({ name: '', description: '', points: '', category: '', image_url: '' });
+    setEditingProduct(null);
+    setShowProductForm(false);
+  };
+
+  const handleEditProduct = (product) => {
+    setEditingProduct(product);
+    setProductForm({
+      name: product.name || '',
+      description: product.description || '',
+      points: product.points?.toString() || '',
+      category: product.category || '',
+      image_url: product.image_url || ''
+    });
+    setShowProductForm(true);
+  };
+
+  return (
+    <div style={styles.adminContainer}>
+      <h2 style={styles.pageTitle}>Admin Panel</h2>
+
+      {/* Tabs */}
+      <div style={styles.adminTabs}>
+        {[
+          { id: 'social', label: `Social Claims (${pendingSocial.length})` },
+          { id: 'rewards', label: `Shop Claims (${pendingRewards.length})` },
+          { id: 'referrals', label: `Referrals (${pendingReferrals.length})` },
+          { id: 'points', label: 'Druifjes Geven' },
+          { id: 'products', label: 'Producten Beheren' },
+        ].map(t => (
+          <button 
+            key={t.id} 
+            onClick={() => setTab(t.id)} 
+            style={tab === t.id ? styles.adminTabActive : styles.adminTab}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Social Claims Tab */}
+      {tab === 'social' && (
+        <div style={styles.adminSection}>
+          <h3 style={styles.adminSectionTitle}>Social Media Claims</h3>
+          {pendingSocial.length === 0 ? (
+            <p style={styles.emptyText}>Geen openstaande claims</p>
+          ) : (
+            <div style={styles.adminList}>
+              {pendingSocial.map(c => {
+                const type = c.description.match(/\[(.*?)\]/)?.[1] || 'onbekend';
+                const desc = c.description.replace(/\[.*?\]\s*/, '');
+                const method = EARN_METHODS.find(m => m.id === type);
+                const points = method?.points || 5;
+                
+                return (
+                  <div key={c.id} style={styles.adminCard}>
+                    <div style={styles.adminCardHeader}>
+                      <strong>{c.user?.name}</strong>
+                      <span style={styles.adminCardMeta}>{type} · +{points} druifjes</span>
+                    </div>
+                    <p style={styles.adminCardDesc}>{desc}</p>
+                    <div style={styles.adminCardActions}>
+                      <button onClick={() => onApproveSocial(c, points)} style={styles.approveBtn}>
+                        Goedkeuren (+{points})
+                      </button>
+                      <button onClick={() => onRejectSocial(c)} style={styles.rejectBtn}>
+                        Afwijzen
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Reward Claims Tab */}
+      {tab === 'rewards' && (
+        <div style={styles.adminSection}>
+          <h3 style={styles.adminSectionTitle}>Shop Aanvragen</h3>
+          {pendingRewards.length === 0 ? (
+            <p style={styles.emptyText}>Geen openstaande aanvragen</p>
+          ) : (
+            <div style={styles.adminList}>
+              {pendingRewards.map(c => {
+                const reward = rewards.find(r => r.id === c.reward_id);
+                return (
+                  <div key={c.id} style={styles.adminCard}>
+                    <div style={styles.adminCardHeader}>
+                      <strong>{c.user?.name}</strong>
+                      <span style={styles.adminCardMeta}>wil {reward?.name || 'onbekend'}</span>
+                    </div>
+                    <p style={styles.adminCardDesc}>{c.points_cost} druifjes</p>
+                    <div style={styles.adminCardActions}>
+                      <button onClick={() => onApproveReward(c, reward?.name)} style={styles.approveBtn}>
+                        Leveren
+                      </button>
+                      <button onClick={() => onRejectReward(c.id)} style={styles.rejectBtn}>
+                        Afwijzen
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Referrals Tab */}
+      {tab === 'referrals' && (
+        <div style={styles.adminSection}>
+          <h3 style={styles.adminSectionTitle}>Referral Programma</h3>
+          {referrals.length === 0 ? (
+            <p style={styles.emptyText}>Geen referrals</p>
+          ) : (
+            <div style={styles.adminList}>
+              {referrals.map(r => (
+                <div key={r.id} style={styles.adminCard}>
+                  <div style={styles.adminCardHeader}>
+                    <strong>{r.colleague_name}</strong>
+                    <span style={styles.adminCardMeta}>via {r.referrer?.name}</span>
+                  </div>
+                  <div style={styles.shiftsTracker}>
+                    <span>Shifts: {r.shifts_worked || 0} / {r.shifts_required || 3}</span>
+                    <div style={styles.shiftsBar}>
+                      <div style={{
+                        ...styles.shiftsFill, 
+                        width: `${((r.shifts_worked || 0) / (r.shifts_required || 3)) * 100}%`
+                      }} />
+                    </div>
+                  </div>
+                  <div style={styles.adminCardActions}>
+                    {r.status === 'submitted' && (
+                      <button onClick={() => onUpdateReferral(r.id, { status: 'active' })} style={styles.approveBtn}>
+                        Markeer als aangenomen
+                      </button>
+                    )}
+                    {r.status === 'active' && (
+                      <>
+                        <button 
+                          onClick={() => onUpdateReferral(r.id, { shifts_worked: (r.shifts_worked || 0) + 1 })} 
+                          style={styles.secondaryBtn}
+                        >
+                          +1 Shift
+                        </button>
+                        {(r.shifts_worked || 0) >= (r.shifts_required || 3) && (
+                          <button onClick={() => onCompleteReferral(r)} style={styles.approveBtn}>
+                            Uitkeren (+100)
+                          </button>
+                        )}
+                      </>
+                    )}
+                    {r.status === 'completed' && (
+                      <span style={styles.completedBadge}>Voltooid</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Points Tab */}
+      {tab === 'points' && (
+        <div style={styles.adminSection}>
+          <h3 style={styles.adminSectionTitle}>Druifjes Toekennen</h3>
+          
+          <div style={styles.formGroup}>
+            <label style={styles.formLabel}>Teamlid</label>
+            <select 
+              value={selectedUser} 
+              onChange={e => setSelectedUser(e.target.value)} 
+              style={styles.select}
+            >
+              <option value="">Selecteer teamlid...</option>
+              {profiles.map(p => (
+                <option key={p.id} value={p.id}>{p.name} ({p.points} druifjes)</option>
+              ))}
+            </select>
+          </div>
+
+          <div style={styles.formGroup}>
+            <label style={styles.formLabel}>Standaard actie</label>
+            <select 
+              value={selectedAction} 
+              onChange={e => { setSelectedAction(e.target.value); setCustomPoints(''); setCustomAction(''); }} 
+              style={styles.select}
+            >
+              <option value="">Selecteer actie...</option>
+              {EARN_METHODS.filter(m => m.category !== 'social').map(m => (
+                <option key={m.id} value={m.id}>{m.name} (+{m.points})</option>
+              ))}
+            </select>
+          </div>
+
+          <div style={styles.formDivider}>
+            <span>of aangepast</span>
+          </div>
+
+          <div style={styles.formRow}>
+            <div style={styles.formGroup}>
+              <label style={styles.formLabel}>Omschrijving</label>
+              <input 
+                type="text" 
+                value={customAction} 
+                onChange={e => { setCustomAction(e.target.value); setSelectedAction(''); }}
+                placeholder="Bijv. Extra inzet festival"
+                style={styles.input}
+              />
+            </div>
+            <div style={{...styles.formGroup, maxWidth: '120px'}}>
+              <label style={styles.formLabel}>Druifjes</label>
+              <input 
+                type="number" 
+                value={customPoints} 
+                onChange={e => { setCustomPoints(e.target.value); setSelectedAction(''); }}
+                placeholder="25"
+                style={styles.input}
+              />
+            </div>
+          </div>
+
+          <button 
+            onClick={handleAddPoints} 
+            disabled={!selectedUser || (!selectedAction && (!customPoints || !customAction))}
+            style={styles.primaryBtn}
+          >
+            Toekennen
+          </button>
+        </div>
+      )}
+
+      {/* Products Tab */}
+      {tab === 'products' && (
+        <div style={styles.adminSection}>
+          <div style={styles.adminSectionHeader}>
+            <h3 style={styles.adminSectionTitle}>Producten Beheren</h3>
+            <button 
+              onClick={() => { setShowProductForm(true); setEditingProduct(null); setProductForm({ name: '', description: '', points: '', category: '', image_url: '' }); }}
+              style={styles.addBtn}
+            >
+              + Nieuw product
+            </button>
+          </div>
+
+          {/* Product Form */}
+          {showProductForm && (
+            <div style={styles.productFormCard}>
+              <h4 style={styles.productFormTitle}>
+                {editingProduct ? 'Product bewerken' : 'Nieuw product'}
+              </h4>
+              
+              <div style={styles.formGroup}>
+                <label style={styles.formLabel}>Naam</label>
+                <input 
+                  type="text" 
+                  value={productForm.name}
+                  onChange={e => setProductForm({...productForm, name: e.target.value})}
+                  placeholder="Fles wijn"
+                  style={styles.input}
+                />
+              </div>
+
+              <div style={styles.formGroup}>
+                <label style={styles.formLabel}>Beschrijving</label>
+                <textarea 
+                  value={productForm.description}
+                  onChange={e => setProductForm({...productForm, description: e.target.value})}
+                  placeholder="Kies een heerlijke fles uit ons assortiment"
+                  style={styles.textarea}
+                  rows={2}
+                />
+              </div>
+
+              <div style={styles.formRow}>
+                <div style={styles.formGroup}>
+                  <label style={styles.formLabel}>Prijs (druifjes)</label>
+                  <input 
+                    type="number" 
+                    value={productForm.points}
+                    onChange={e => setProductForm({...productForm, points: e.target.value})}
+                    placeholder="100"
+                    style={styles.input}
+                  />
+                </div>
+                <div style={styles.formGroup}>
+                  <label style={styles.formLabel}>Categorie</label>
+                  <select 
+                    value={productForm.category}
+                    onChange={e => setProductForm({...productForm, category: e.target.value})}
+                    style={styles.select}
+                  >
+                    <option value="">Kies...</option>
+                    <option value="klein">Klein</option>
+                    <option value="middel">Middel</option>
+                    <option value="groot">Groot</option>
+                    <option value="premium">Premium</option>
+                    <option value="ultiem">Ultiem</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style={styles.formGroup}>
+                <label style={styles.formLabel}>Afbeelding URL</label>
+                <input 
+                  type="text" 
+                  value={productForm.image_url}
+                  onChange={e => setProductForm({...productForm, image_url: e.target.value})}
+                  placeholder="https://..."
+                  style={styles.input}
+                />
+                <span style={styles.formHint}>Tip: Upload een afbeelding naar imgur.com en plak de link hier</span>
+              </div>
+
+              {productForm.image_url && (
+                <div style={styles.imagePreview}>
+                  <img src={productForm.image_url} alt="Preview" style={styles.imagePreviewImg} />
+                </div>
+              )}
+
+              <div style={styles.formActions}>
+                <button onClick={() => setShowProductForm(false)} style={styles.secondaryBtn}>
+                  Annuleren
+                </button>
+                <button 
+                  onClick={handleSaveProduct}
+                  disabled={!productForm.name || !productForm.points}
+                  style={styles.primaryBtn}
+                >
+                  {editingProduct ? 'Opslaan' : 'Toevoegen'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Product List */}
+          <div style={styles.productList}>
+            {rewards.length === 0 ? (
+              <p style={styles.emptyText}>Nog geen producten. Voeg je eerste product toe!</p>
+            ) : (
+              rewards.map(product => (
+                <div key={product.id} style={styles.productListItem}>
+                  <div style={styles.productListImage}>
+                    {product.image_url ? (
+                      <img src={product.image_url} alt={product.name} style={styles.productListImg} />
+                    ) : (
+                      <div style={styles.productListPlaceholder}>{product.name?.charAt(0)}</div>
+                    )}
+                  </div>
+                  <div style={styles.productListInfo}>
+                    <strong>{product.name}</strong>
+                    <span style={styles.productListMeta}>
+                      {product.points} druifjes · {product.category || 'Geen categorie'}
+                    </span>
+                  </div>
+                  <div style={styles.productListActions}>
+                    <button onClick={() => handleEditProduct(product)} style={styles.editBtn}>
+                      Bewerk
+                    </button>
+                    <button onClick={() => onDeleteReward(product.id)} style={styles.deleteBtn}>
+                      Verwijder
+                    </button>
+                  </div>
+                </div>
+              ))
             )}
           </div>
         </div>
@@ -969,18 +1411,16 @@ function BeautifulShop({ profile, claims, onClaim, wishlist }) {
 function MainApp() {
   const { profile, signOut, refreshProfile } = useApp();
   const { profiles } = useProfiles();
-  const { actions } = usePointActions();
+  const { rewards, addReward, updateReward, deleteReward } = useRewards();
   const { activities } = useActivities(profile?.id);
   const { claims: socialClaims, submitClaim, approveClaim, rejectClaim } = useSocialClaims();
   const { claims: rewardClaims, createClaim, updateClaim } = useRewardClaims();
   const { referrals, submitReferral, updateReferral, completeReferral } = useReferrals();
   const { canGive, give } = useRecognitions();
-  const wishlist = useWishlist();
   const { notifications, unreadCount, markRead } = useNotifications();
   const { addPoints } = useAdminPoints();
 
   const [view, setView] = useState('dashboard');
-  const [adminTab, setAdminTab] = useState('social');
   const [toast, setToast] = useState(null);
   const [showNotifications, setShowNotifications] = useState(false);
 
@@ -993,59 +1433,61 @@ function MainApp() {
 
   // Computed
   const myActivities = activities.filter(a => a.user_id === profile?.id);
-  const pendingSocialClaims = socialClaims.filter(c => c.status === 'pending');
-  const pendingRewardClaims = rewardClaims.filter(c => c.status === 'pending');
-  const pendingReferrals = referrals.filter(r => r.status !== 'completed' && r.status !== 'rejected');
-
-  // Get reward info from hardcoded list
-  const getRewardInfo = (rewardId) => SHOP_ITEMS.find(i => i.id === rewardId);
+  const pendingCount = socialClaims.filter(c => c.status === 'pending').length + 
+                       rewardClaims.filter(c => c.status === 'pending').length;
 
   // Handlers
   const handleSocialSubmit = async (type, desc, points) => {
     const success = await submitClaim(type, desc, points);
-    if (success) notify('📤 Aangemeld! We controleren het zo snel mogelijk.');
+    if (success) notify('Aangemeld! We controleren het zo snel mogelijk.');
     return success;
   };
 
   const handleRewardClaim = async (rewardId, rewardName, points) => {
     const success = await createClaim(rewardId, rewardName, points);
-    if (success) notify('🍇 Beloning aangevraagd!');
+    if (success) notify('Beloning aangevraagd!');
     refreshProfile();
     return success;
   };
 
-  const handleApproveSocial = async (claim) => {
-    const points = parseInt(claim.description.match(/\d+/)?.[0]) || 
-      (claim.description.includes('[video]') ? 100 : 
-       claim.description.includes('[post]') ? 20 : 
-       claim.description.includes('[story]') ? 10 : 5);
-    
+  const handleApproveSocial = async (claim, points) => {
     await approveClaim(claim.id, points);
-    notify(`✅ Goedgekeurd! +${points} druifjes voor ${claim.user?.name}`);
+    notify(`Goedgekeurd! +${points} druifjes voor ${claim.user?.name}`);
     refreshProfile();
   };
 
   const handleRejectSocial = async (claim) => {
     await rejectClaim(claim.id);
-    notify('❌ Afgewezen');
+    notify('Afgewezen');
   };
 
-  const handleApproveReward = async (claim) => {
-    const reward = getRewardInfo(claim.reward_id);
-    await updateClaim(claim.id, 'approved', reward?.name);
-    notify(`✅ ${reward?.name || 'Beloning'} goedgekeurd voor ${claim.user?.name}`);
+  const handleApproveReward = async (claim, rewardName) => {
+    await updateClaim(claim.id, 'approved', rewardName);
+    notify(`${rewardName || 'Beloning'} goedgekeurd`);
     refreshProfile();
+  };
+
+  const handleRejectReward = async (claimId) => {
+    await updateClaim(claimId, 'rejected');
+    notify('Afgewezen');
   };
 
   const handleGiveRecognition = async (userId, userName) => {
     await give(userId, userName);
-    notify(`❤️ Je hebt ${userName} gewaardeerd!`);
+    notify(`Je hebt ${userName} gewaardeerd!`);
     refreshProfile();
   };
 
   const handleSubmitReferral = async (name, contact) => {
     await submitReferral(name, contact);
-    notify('👥 Collega aangedragen!');
+    notify('Collega aangedragen!');
+  };
+
+  const handleAddPoints = async (userId, actionName, points) => {
+    await addPoints(userId, actionName, points);
+    const user = profiles.find(p => p.id === userId);
+    notify(`+${points} druifjes voor ${user?.name}`);
+    refreshProfile();
   };
 
   if (!profile) return <div style={styles.loading}>Laden...</div>;
@@ -1056,7 +1498,7 @@ function MainApp() {
       {toast && (
         <div style={{
           ...styles.toast,
-          background: toast.type === 'error' ? 'linear-gradient(135deg, #ef4444, #dc2626)' : 'linear-gradient(135deg, #8b5cf6, #6366f1)'
+          background: toast.type === 'error' ? COLORS.error : COLORS.darkBlue
         }}>
           {toast.msg}
         </div>
@@ -1067,7 +1509,7 @@ function MainApp() {
         <div style={styles.notifOverlay} onClick={() => setShowNotifications(false)}>
           <div style={styles.notifPanel} onClick={e => e.stopPropagation()}>
             <div style={styles.notifHeader}>
-              <h3>🔔 Notificaties</h3>
+              <h3>Notificaties</h3>
               <button onClick={markRead} style={styles.notifMarkRead}>Alles gelezen</button>
             </div>
             {notifications.length === 0 ? (
@@ -1090,41 +1532,47 @@ function MainApp() {
       {/* Header */}
       <header style={styles.header}>
         <div style={styles.headerLeft}>
-          <span style={styles.headerLogo}>🍇</span>
-          <h1 style={styles.headerTitle}>MvdW Rewards</h1>
+          <MvdWLogo size={36} color={COLORS.white} />
+          <span style={styles.headerTitle}>Rewards</span>
         </div>
         <div style={styles.headerRight}>
           <div style={styles.headerPoints}>
             <span style={styles.headerPointsValue}>{profile.points}</span>
-            <span style={styles.headerPointsIcon}>🍇</span>
+            <span style={styles.headerPointsLabel}>druifjes</span>
           </div>
           <button onClick={() => { setShowNotifications(true); markRead(); }} style={styles.headerBtn}>
-            🔔{unreadCount > 0 && <span style={styles.badge}>{unreadCount}</span>}
+            <span style={styles.headerBtnIcon}>●</span>
+            {unreadCount > 0 && <span style={styles.badge}>{unreadCount}</span>}
           </button>
-          <button onClick={signOut} style={styles.headerBtn}>{profile.avatar || '👤'}</button>
+          <button onClick={signOut} style={styles.headerBtn}>
+            <span style={styles.headerBtnIcon}>→</span>
+          </button>
         </div>
       </header>
 
       {/* Nav */}
       <nav style={styles.nav}>
         {[
-          { id: 'dashboard', icon: '🏠', label: 'Home' },
-          { id: 'earn', icon: '🍇', label: 'Verdienen' },
-          { id: 'shop', icon: '🛍️', label: 'Shop' },
-          { id: 'team', icon: '👥', label: 'Team' },
+          { id: 'dashboard', label: 'Home' },
+          { id: 'earn', label: 'Verdienen' },
+          { id: 'shop', label: 'Shop' },
+          { id: 'team', label: 'Team' },
         ].map(item => (
-          <button key={item.id} onClick={() => setView(item.id)} style={view === item.id ? styles.navActive : styles.navBtn}>
-            <span style={styles.navIcon}>{item.icon}</span>
-            <span style={styles.navLabel}>{item.label}</span>
+          <button 
+            key={item.id} 
+            onClick={() => setView(item.id)} 
+            style={view === item.id ? styles.navActive : styles.navBtn}
+          >
+            {item.label}
           </button>
         ))}
         {profile.is_admin && (
-          <button onClick={() => setView('admin')} style={view === 'admin' ? styles.navActive : styles.navBtn}>
-            <span style={styles.navIcon}>🔐</span>
-            <span style={styles.navLabel}>Admin</span>
-            {(pendingSocialClaims.length + pendingRewardClaims.length) > 0 && (
-              <span style={styles.navBadge}>{pendingSocialClaims.length + pendingRewardClaims.length}</span>
-            )}
+          <button 
+            onClick={() => setView('admin')} 
+            style={view === 'admin' ? styles.navActive : styles.navBtn}
+          >
+            Admin
+            {pendingCount > 0 && <span style={styles.navBadge}>{pendingCount}</span>}
           </button>
         )}
       </nav>
@@ -1138,15 +1586,11 @@ function MainApp() {
             {/* Hero */}
             <div style={styles.heroCard}>
               <div style={styles.heroContent}>
-                <span style={styles.heroGreeting}>Hey {profile.name}! 👋</span>
+                <span style={styles.heroGreeting}>Welkom, {profile.name}</span>
                 <div style={styles.heroPointsRow}>
                   <span style={styles.heroPoints}>{profile.points}</span>
-                  <span style={styles.heroGrape}>🍇</span>
+                  <span style={styles.heroLabel}>druifjes</span>
                 </div>
-                <span style={styles.heroLabel}>druifjes gespaard</span>
-              </div>
-              <div style={styles.heroDecor}>
-                <span style={styles.heroGrapeLarge}>🍇</span>
               </div>
             </div>
 
@@ -1166,45 +1610,31 @@ function MainApp() {
               </div>
             </div>
 
-            {/* Quick Social Links */}
-            <div style={styles.quickSocials}>
-              <h3 style={styles.quickSocialsTitle}>📱 Snel naar onze socials</h3>
-              <div style={styles.quickSocialGrid}>
-                <a href={SOCIAL_LINKS.instagram} target="_blank" rel="noopener noreferrer" style={styles.quickSocialBtn}>📸 Instagram</a>
-                <a href={SOCIAL_LINKS.facebook} target="_blank" rel="noopener noreferrer" style={styles.quickSocialBtn}>👍 Facebook</a>
-                <a href={SOCIAL_LINKS.linkedin} target="_blank" rel="noopener noreferrer" style={styles.quickSocialBtn}>💼 LinkedIn</a>
-                <a href={SOCIAL_LINKS.tiktok} target="_blank" rel="noopener noreferrer" style={styles.quickSocialBtn}>🎵 TikTok</a>
-              </div>
-            </div>
-
             {/* Pending claims */}
             {socialClaims.filter(c => c.user_id === profile.id && c.status === 'pending').length > 0 && (
               <div style={styles.pendingCard}>
-                <span style={styles.pendingIcon}>⏳</span>
-                <div>
-                  <strong>Je hebt claims in review</strong>
-                  <span style={styles.pendingCount}>
-                    {socialClaims.filter(c => c.user_id === profile.id && c.status === 'pending').length} wachten op goedkeuring
-                  </span>
-                </div>
+                <strong>Claims in review</strong>
+                <span style={styles.pendingCount}>
+                  {socialClaims.filter(c => c.user_id === profile.id && c.status === 'pending').length} wachten op goedkeuring
+                </span>
               </div>
             )}
 
             {/* Recent Activity */}
             <div style={styles.section}>
-              <h3 style={styles.sectionTitle}>📜 Recente activiteit</h3>
+              <h3 style={styles.sectionTitle}>Recente activiteit</h3>
               {myActivities.length === 0 ? (
-                <p style={styles.empty}>Nog geen activiteit - begin met druifjes verdienen! 🍇</p>
+                <p style={styles.emptyText}>Nog geen activiteit</p>
               ) : (
                 <div style={styles.activityList}>
                   {myActivities.slice(0, 5).map(a => (
-                    <div key={a.id} style={a.is_high_value ? styles.activityItemHV : styles.activityItem}>
+                    <div key={a.id} style={styles.activityItem}>
                       <div style={styles.activityInfo}>
                         {a.is_high_value && <span style={styles.hvBadge}>HIGH VALUE</span>}
                         <span style={styles.activityName}>{a.action_name}</span>
                         <span style={styles.activityDate}>{formatDate(a.created_at)}</span>
                       </div>
-                      <span style={styles.activityPoints}>+{a.points} 🍇</span>
+                      <span style={styles.activityPoints}>+{a.points}</span>
                     </div>
                   ))}
                 </div>
@@ -1215,20 +1645,65 @@ function MainApp() {
 
         {/* EARN */}
         {view === 'earn' && (
-          <div style={styles.earnView}>
-            <SocialSection 
-              onSubmitClaim={handleSocialSubmit} 
-              myClaims={socialClaims.filter(c => c.user_id === profile.id)} 
-            />
+          <EarnSection 
+            onSubmitClaim={handleSocialSubmit} 
+            myClaims={socialClaims.filter(c => c.user_id === profile.id)} 
+          />
+        )}
+
+        {/* SHOP */}
+        {view === 'shop' && (
+          <Shop 
+            rewards={rewards}
+            profile={profile}
+            claims={rewardClaims}
+            onClaim={handleRewardClaim}
+          />
+        )}
+
+        {/* TEAM */}
+        {view === 'team' && (
+          <div style={styles.teamView}>
+            <h2 style={styles.pageTitle}>Team</h2>
+
+            {/* Recognition */}
+            <div style={styles.recognitionCard}>
+              <h3 style={styles.recognitionTitle}>Waardeer een collega</h3>
+              <p style={styles.recognitionDesc}>
+                Geef +20 druifjes aan iemand die het verdient (1x per maand)
+              </p>
+              <span style={canGive() ? styles.canRecognize : styles.cantRecognize}>
+                {canGive() ? 'Je kunt nog waarderen' : 'Al gewaardeerd deze maand'}
+              </span>
+            </div>
+
+            <div style={styles.colleagueGrid}>
+              {profiles.filter(p => p.id !== profile.id).map(p => (
+                <div key={p.id} style={styles.colleagueCard}>
+                  <div style={styles.colleagueAvatar}>{p.name?.charAt(0) || '?'}</div>
+                  <h4 style={styles.colleagueName}>{p.name}</h4>
+                  <span style={styles.colleaguePoints}>{p.points} druifjes</span>
+                  <button 
+                    onClick={() => handleGiveRecognition(p.id, p.name)}
+                    disabled={!canGive()}
+                    style={canGive() ? styles.giveBtn : styles.giveBtnDisabled}
+                  >
+                    Waardeer
+                  </button>
+                </div>
+              ))}
+            </div>
 
             {/* Referral */}
             <div style={styles.referralSection}>
-              <h3 style={styles.sectionTitle}>👥 Ambassadeur Programma</h3>
-              <p style={styles.sectionDesc}>Draag een nieuwe collega aan en verdien <strong>100 druifjes</strong> als zij 3 shifts hebben gewerkt!</p>
+              <h3 style={styles.sectionTitle}>Collega aandragen</h3>
+              <p style={styles.sectionDesc}>
+                Draag een nieuwe collega aan en verdien 100 druifjes als zij 3 shifts hebben gewerkt!
+              </p>
               
               <div style={styles.referralForm}>
-                <input type="text" placeholder="Naam van de persoon" id="refName" style={styles.input} />
-                <input type="text" placeholder="Telefoonnummer of email" id="refContact" style={styles.input} />
+                <input type="text" placeholder="Naam" id="refName" style={styles.input} />
+                <input type="text" placeholder="Telefoon of email" id="refContact" style={styles.input} />
                 <button onClick={() => {
                   const name = document.getElementById('refName');
                   const contact = document.getElementById('refContact');
@@ -1237,89 +1712,41 @@ function MainApp() {
                     name.value = '';
                     contact.value = '';
                   }
-                }} style={styles.referralBtn}>
-                  👥 Aandragen
+                }} style={styles.primaryBtn}>
+                  Aandragen
                 </button>
               </div>
 
               {/* My referrals */}
               {referrals.filter(r => r.referrer_id === profile.id).length > 0 && (
                 <div style={styles.myReferrals}>
-                  <h4 style={styles.myReferralsTitle}>Jouw referrals:</h4>
+                  <h4 style={styles.myReferralsTitle}>Jouw referrals</h4>
                   {referrals.filter(r => r.referrer_id === profile.id).map(r => (
-                    <div key={r.id} style={styles.referralCard}>
-                      <div>
-                        <strong>{r.colleague_name}</strong>
-                        <span style={styles.referralStatus}>
-                          {r.status === 'submitted' && '📝 Aangemeld'}
-                          {r.status === 'hired' && '✅ Aangenomen'}
-                          {r.status === 'active' && `👔 ${r.shifts_worked}/${r.shifts_required} shifts`}
-                          {r.status === 'completed' && '🎉 Voltooid! +100 🍇'}
-                        </span>
-                      </div>
+                    <div key={r.id} style={styles.referralItem}>
+                      <strong>{r.colleague_name}</strong>
+                      <span style={styles.referralStatus}>
+                        {r.status === 'submitted' && 'Aangemeld'}
+                        {r.status === 'active' && `${r.shifts_worked || 0}/${r.shifts_required || 3} shifts`}
+                        {r.status === 'completed' && 'Voltooid! +100 druifjes'}
+                      </span>
                     </div>
                   ))}
                 </div>
               )}
             </div>
-          </div>
-        )}
-
-        {/* SHOP */}
-        {view === 'shop' && (
-          <BeautifulShop 
-            profile={profile}
-            claims={rewardClaims}
-            onClaim={handleRewardClaim}
-            wishlist={wishlist}
-          />
-        )}
-
-        {/* TEAM */}
-        {view === 'team' && (
-          <div style={styles.teamView}>
-            <h2 style={styles.pageTitle}>👥 Team</h2>
-
-            {/* Recognition */}
-            <div style={styles.recognitionCard}>
-              <h3>❤️ Waardeer een collega</h3>
-              <p>Geef +20 druifjes aan iemand die het verdient (1x per kwartaal)</p>
-              <span style={canGive() ? styles.canRecognize : styles.cantRecognize}>
-                {canGive() ? '✅ Je kunt nog waarderen' : '⏳ Al gewaardeerd dit kwartaal'}
-              </span>
-            </div>
-
-            <div style={styles.colleagueGrid}>
-              {profiles.filter(p => p.id !== profile.id).map(p => (
-                <div key={p.id} style={styles.colleagueCard}>
-                  <span style={styles.colleagueAvatar}>{p.avatar || '👤'}</span>
-                  <h4 style={styles.colleagueName}>{p.name}</h4>
-                  <span style={styles.colleagueRole}>{p.role}</span>
-                  <span style={styles.colleaguePoints}>{p.points} 🍇</span>
-                  <button 
-                    onClick={() => handleGiveRecognition(p.id, p.name)}
-                    disabled={!canGive()}
-                    style={canGive() ? styles.giveBtn : styles.giveBtnDisabled}
-                  >
-                    ❤️ Waardeer
-                  </button>
-                </div>
-              ))}
-            </div>
 
             {/* Leaderboard */}
             <div style={styles.section}>
-              <h3 style={styles.sectionTitle}>🏆 Leaderboard</h3>
+              <h3 style={styles.sectionTitle}>Leaderboard</h3>
               <div style={styles.leaderboard}>
                 {[...profiles].sort((a, b) => b.points - a.points).map((p, i) => (
                   <div key={p.id} style={p.id === profile.id ? styles.leaderRowMe : styles.leaderRow}>
-                    <span style={i < 3 ? styles[`rank${i + 1}`] : styles.rank}>{i + 1}</span>
-                    <span style={styles.leaderAvatar}>{p.avatar || '👤'}</span>
+                    <span style={styles.leaderRank}>{i + 1}</span>
+                    <div style={styles.leaderAvatar}>{p.name?.charAt(0) || '?'}</div>
                     <div style={styles.leaderInfo}>
                       <span style={styles.leaderName}>{p.name} {p.id === profile.id && '(jij)'}</span>
-                      <span style={styles.leaderRole}>{p.role}</span>
                     </div>
-                    <span style={styles.leaderPoints}>{p.points} 🍇</span>
+                    <span style={styles.leaderPoints}>{p.points}</span>
                   </div>
                 ))}
               </div>
@@ -1329,175 +1756,24 @@ function MainApp() {
 
         {/* ADMIN */}
         {view === 'admin' && profile.is_admin && (
-          <div style={styles.adminView}>
-            <h2 style={styles.pageTitle}>🔐 Admin Panel</h2>
-
-            <div style={styles.adminTabs}>
-              {[
-                { id: 'social', label: `Social (${pendingSocialClaims.length})` },
-                { id: 'rewards', label: `Shop (${pendingRewardClaims.length})` },
-                { id: 'referrals', label: `Referrals (${pendingReferrals.length})` },
-                { id: 'points', label: 'Druifjes Geven' },
-              ].map(t => (
-                <button key={t.id} onClick={() => setAdminTab(t.id)} style={adminTab === t.id ? styles.adminTabActive : styles.adminTabBtn}>
-                  {t.label}
-                </button>
-              ))}
-            </div>
-
-            {/* Social Claims */}
-            {adminTab === 'social' && (
-              <div style={styles.adminSection}>
-                <h3 style={styles.adminSectionTitle}>Social Media Claims ter controle</h3>
-                {pendingSocialClaims.length === 0 ? (
-                  <p style={styles.empty}>Geen claims in de wacht 🎉</p>
-                ) : (
-                  <div style={styles.adminList}>
-                    {pendingSocialClaims.map(c => {
-                      const type = c.description.match(/\[(.*?)\]/)?.[1] || 'onbekend';
-                      const desc = c.description.replace(/\[.*?\]\s*/, '');
-                      const points = type === 'video' ? 100 : type === 'post' ? 20 : type === 'story' ? 10 : 5;
-                      
-                      return (
-                        <div key={c.id} style={styles.adminCard}>
-                          <div style={styles.adminCardHeader}>
-                            <span style={styles.adminCardAvatar}>{c.user?.avatar || '👤'}</span>
-                            <div>
-                              <strong>{c.user?.name}</strong>
-                              <span style={styles.adminCardType}>{type} • +{points} 🍇</span>
-                            </div>
-                          </div>
-                          <p style={styles.adminCardDesc}>{desc}</p>
-                          <div style={styles.adminCardActions}>
-                            <button onClick={() => handleApproveSocial(c)} style={styles.approveBtn}>✅ +{points} 🍇</button>
-                            <button onClick={() => handleRejectSocial(c)} style={styles.rejectBtn}>❌</button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Reward Claims */}
-            {adminTab === 'rewards' && (
-              <div style={styles.adminSection}>
-                <h3 style={styles.adminSectionTitle}>Beloning Aanvragen</h3>
-                {pendingRewardClaims.length === 0 ? (
-                  <p style={styles.empty}>Geen aanvragen</p>
-                ) : (
-                  <div style={styles.adminList}>
-                    {pendingRewardClaims.map(c => {
-                      const reward = getRewardInfo(c.reward_id);
-                      return (
-                        <div key={c.id} style={styles.adminCard}>
-                          <div style={styles.adminCardHeader}>
-                            <span style={styles.adminCardEmoji}>{reward?.emoji || '🎁'}</span>
-                            <div>
-                              <strong>{c.user?.name}</strong> wil
-                              <span style={styles.adminCardReward}>{reward?.name || 'Onbekend'}</span>
-                              <span style={styles.adminCardType}>{c.points_cost} 🍇</span>
-                            </div>
-                          </div>
-                          <div style={styles.adminCardActions}>
-                            <button onClick={() => handleApproveReward(c)} style={styles.approveBtn}>✅ Leveren</button>
-                            <button onClick={() => updateClaim(c.id, 'rejected')} style={styles.rejectBtn}>❌</button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Referrals */}
-            {adminTab === 'referrals' && (
-              <div style={styles.adminSection}>
-                <h3 style={styles.adminSectionTitle}>Referral Programma</h3>
-                {referrals.length === 0 ? (
-                  <p style={styles.empty}>Geen referrals</p>
-                ) : (
-                  <div style={styles.adminList}>
-                    {referrals.map(r => (
-                      <div key={r.id} style={styles.adminCard}>
-                        <div style={styles.adminCardHeader}>
-                          <span style={styles.adminCardAvatar}>{r.referrer?.avatar || '👤'}</span>
-                          <div>
-                            <strong>{r.colleague_name}</strong>
-                            <span style={styles.adminCardType}>Aangedragen door {r.referrer?.name}</span>
-                          </div>
-                        </div>
-                        <div style={styles.shiftsTracker}>
-                          <span>Shifts: {r.shifts_worked} / {r.shifts_required}</span>
-                          <div style={styles.shiftsBar}>
-                            <div style={{...styles.shiftsFill, width: `${(r.shifts_worked / r.shifts_required) * 100}%`}} />
-                          </div>
-                        </div>
-                        <div style={styles.adminCardActions}>
-                          {r.status === 'submitted' && (
-                            <button onClick={() => updateReferral(r.id, { status: 'active' })} style={styles.hireBtn}>
-                              ✅ Aangenomen
-                            </button>
-                          )}
-                          {r.status === 'active' && (
-                            <>
-                              <button onClick={() => updateReferral(r.id, { shifts_worked: r.shifts_worked + 1 })} style={styles.shiftBtn}>
-                                +1 Shift
-                              </button>
-                              {r.shifts_worked >= r.shifts_required && (
-                                <button onClick={() => completeReferral(r)} style={styles.awardBtn}>
-                                  🎉 +100 🍇
-                                </button>
-                              )}
-                            </>
-                          )}
-                          {r.status === 'completed' && <span style={styles.completedBadge}>✅ Voltooid</span>}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Manual Points */}
-            {adminTab === 'points' && (
-              <div style={styles.adminSection}>
-                <h3 style={styles.adminSectionTitle}>Druifjes Toekennen</h3>
-                <div style={styles.pointsForm}>
-                  <select id="adminUser" style={styles.select}>
-                    <option value="">Selecteer teamlid...</option>
-                    {profiles.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                  </select>
-                  <select id="adminAction" style={styles.select}>
-                    <option value="">Selecteer actie...</option>
-                    {actions.filter(a => !a.is_self_claimable).map(a => (
-                      <option key={a.id} value={`${a.id}|${a.name}|${a.points}`}>
-                        {a.emoji} {a.name} (+{a.points})
-                      </option>
-                    ))}
-                  </select>
-                  <button onClick={() => {
-                    const userEl = document.getElementById('adminUser');
-                    const actionEl = document.getElementById('adminAction');
-                    if (userEl.value && actionEl.value) {
-                      const [actionId, actionName, points] = actionEl.value.split('|');
-                      const user = profiles.find(p => p.id === userEl.value);
-                      addPoints(userEl.value, actionId, actionName, parseInt(points));
-                      notify(`✅ +${points} druifjes voor ${user?.name}!`);
-                      userEl.value = '';
-                      actionEl.value = '';
-                      refreshProfile();
-                    }
-                  }} style={styles.adminBtn}>
-                    🍇 Toekennen
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+          <AdminPanel 
+            profiles={profiles}
+            socialClaims={socialClaims}
+            rewardClaims={rewardClaims}
+            referrals={referrals}
+            rewards={rewards}
+            onApproveSocial={handleApproveSocial}
+            onRejectSocial={handleRejectSocial}
+            onApproveReward={handleApproveReward}
+            onRejectReward={handleRejectReward}
+            onUpdateReferral={updateReferral}
+            onCompleteReferral={completeReferral}
+            onAddPoints={handleAddPoints}
+            onAddReward={addReward}
+            onUpdateReward={updateReward}
+            onDeleteReward={deleteReward}
+            refreshProfile={refreshProfile}
+          />
         )}
       </main>
     </div>
@@ -1521,7 +1797,7 @@ function AppContent() {
   if (loading) {
     return (
       <div style={styles.loadingScreen}>
-        <span style={styles.loadingLogo}>🍇</span>
+        <MvdWLogo size={80} color={COLORS.white} />
         <span style={styles.loadingText}>Laden...</span>
       </div>
     );
@@ -1531,293 +1807,1561 @@ function AppContent() {
 }
 
 // =====================================================
-// STYLES
+// STYLES - MvdW Huisstijl
 // =====================================================
 const styles = {
   // Loading
-  loadingScreen: { minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #1a0a2e, #0a0a1a)', gap: '1rem' },
-  loadingLogo: { fontSize: '4rem', animation: 'pulse 1.5s ease-in-out infinite' },
-  loadingText: { color: 'rgba(255,255,255,0.5)', fontSize: '1rem' },
-  loading: { padding: '2rem', textAlign: 'center', color: 'rgba(255,255,255,0.5)', background: '#0a0a1a', minHeight: '100vh' },
+  loadingScreen: { 
+    minHeight: '100vh', 
+    display: 'flex', 
+    flexDirection: 'column', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    background: COLORS.darkBlue, 
+    gap: '1.5rem' 
+  },
+  loadingText: { 
+    color: COLORS.white, 
+    fontFamily: 'Poppins, sans-serif', 
+    fontSize: '1rem',
+    opacity: 0.7
+  },
+  loading: { 
+    padding: '2rem', 
+    textAlign: 'center', 
+    color: COLORS.white, 
+    background: COLORS.darkBlue, 
+    minHeight: '100vh',
+    fontFamily: 'Poppins, sans-serif'
+  },
 
   // Auth
-  authScreen: { minHeight: '100vh', background: 'linear-gradient(135deg, #1a0a2e 0%, #0a0a1a 50%, #1a0a2e 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', fontFamily: "'Inter', -apple-system, sans-serif", position: 'relative', overflow: 'hidden' },
-  grapesBackground: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden', pointerEvents: 'none' },
-  floatingGrape: { position: 'absolute', top: '-10%', animation: 'floatDown 20s linear infinite' },
-  authContainer: { width: '100%', maxWidth: '400px', position: 'relative', zIndex: 1 },
-  authHeader: { textAlign: 'center', marginBottom: '2rem' },
-  authLogoWrap: { width: '90px', height: '90px', background: 'linear-gradient(135deg, rgba(139,92,246,0.4), rgba(99,102,241,0.2))', borderRadius: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem', backdropFilter: 'blur(10px)', border: '1px solid rgba(139,92,246,0.3)', boxShadow: '0 8px 32px rgba(139,92,246,0.3)' },
-  authLogo: { fontSize: '2.75rem' },
-  authTitle: { color: '#fff', fontSize: '1.75rem', fontWeight: 700, margin: 0 },
-  authSubtitle: { color: 'rgba(255,255,255,0.5)', marginTop: '0.5rem' },
-  authCard: { background: 'rgba(255,255,255,0.05)', borderRadius: '24px', padding: '1.5rem', border: '1px solid rgba(139,92,246,0.2)', backdropFilter: 'blur(10px)' },
-  authTabs: { display: 'flex', marginBottom: '1.5rem', borderRadius: '12px', overflow: 'hidden', background: 'rgba(255,255,255,0.05)' },
-  authTab: { flex: 1, padding: '0.75rem', background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.9rem', transition: 'all 0.2s' },
-  authTabActive: { flex: 1, padding: '0.75rem', background: 'linear-gradient(135deg, rgba(139,92,246,0.5), rgba(99,102,241,0.5))', border: 'none', color: '#fff', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.9rem', fontWeight: 600 },
-  authForm: { display: 'flex', flexDirection: 'column', gap: '1rem' },
-  authInput: { padding: '1rem', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '12px', color: '#fff', fontFamily: 'inherit', fontSize: '1rem', outline: 'none', transition: 'border-color 0.2s' },
-  authError: { color: '#ef4444', fontSize: '0.85rem', margin: 0, padding: '0.75rem', background: 'rgba(239,68,68,0.1)', borderRadius: '8px', border: '1px solid rgba(239,68,68,0.2)' },
-  authButton: { padding: '1rem', background: 'linear-gradient(135deg, #8b5cf6, #6366f1)', border: 'none', borderRadius: '12px', color: '#fff', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', fontSize: '1rem', transition: 'transform 0.2s, box-shadow 0.2s', boxShadow: '0 4px 20px rgba(139,92,246,0.4)' },
-  authSocials: { textAlign: 'center', marginTop: '2rem' },
-  authSocialsLabel: { color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', marginBottom: '0.75rem' },
-  authSocialLinks: { display: 'flex', justifyContent: 'center', gap: '0.75rem' },
-  authSocialLink: { width: '48px', height: '48px', background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', textDecoration: 'none', transition: 'transform 0.2s, background 0.2s' },
-  authTagline: { color: 'rgba(255,255,255,0.3)', textAlign: 'center', marginTop: '2rem', fontStyle: 'italic', fontSize: '0.85rem' },
+  authScreen: { 
+    minHeight: '100vh', 
+    background: COLORS.darkBlue, 
+    display: 'flex', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    padding: '1rem', 
+    fontFamily: 'Poppins, sans-serif'
+  },
+  authContainer: { 
+    width: '100%', 
+    maxWidth: '400px' 
+  },
+  authHeader: { 
+    textAlign: 'center', 
+    marginBottom: '2rem' 
+  },
+  authLogoWrap: { 
+    marginBottom: '1rem' 
+  },
+  authTitle: { 
+    color: COLORS.white, 
+    fontSize: '1.75rem', 
+    fontFamily: 'DM Serif Display, serif',
+    fontWeight: 400,
+    margin: '0.5rem 0 0' 
+  },
+  authSubtitle: { 
+    color: 'rgba(255,255,255,0.6)', 
+    marginTop: '0.5rem',
+    fontSize: '0.9rem'
+  },
+  authCard: { 
+    background: COLORS.white, 
+    borderRadius: '12px', 
+    padding: '1.5rem'
+  },
+  authTabs: { 
+    display: 'flex', 
+    marginBottom: '1.5rem', 
+    borderRadius: '8px', 
+    overflow: 'hidden', 
+    background: COLORS.lightGrey 
+  },
+  authTab: { 
+    flex: 1, 
+    padding: '0.75rem', 
+    background: 'transparent', 
+    border: 'none', 
+    color: COLORS.darkGrey, 
+    cursor: 'pointer', 
+    fontFamily: 'Poppins, sans-serif', 
+    fontSize: '0.9rem', 
+    transition: 'all 0.2s' 
+  },
+  authTabActive: { 
+    flex: 1, 
+    padding: '0.75rem', 
+    background: COLORS.darkBlue, 
+    border: 'none', 
+    color: COLORS.white, 
+    cursor: 'pointer', 
+    fontFamily: 'Poppins, sans-serif', 
+    fontSize: '0.9rem', 
+    fontWeight: 600 
+  },
+  authForm: { 
+    display: 'flex', 
+    flexDirection: 'column', 
+    gap: '1rem' 
+  },
+  authInput: { 
+    padding: '0.875rem 1rem', 
+    background: COLORS.lightGrey, 
+    border: `1px solid ${COLORS.mediumGrey}`, 
+    borderRadius: '8px', 
+    color: COLORS.darkBlue, 
+    fontFamily: 'Poppins, sans-serif', 
+    fontSize: '1rem', 
+    outline: 'none'
+  },
+  authError: { 
+    color: COLORS.error, 
+    fontSize: '0.85rem', 
+    margin: 0, 
+    padding: '0.75rem', 
+    background: 'rgba(239,68,68,0.1)', 
+    borderRadius: '8px'
+  },
+  authButton: { 
+    padding: '1rem', 
+    background: COLORS.darkBlue, 
+    border: 'none', 
+    borderRadius: '8px', 
+    color: COLORS.white, 
+    fontWeight: 600, 
+    cursor: 'pointer', 
+    fontFamily: 'Poppins, sans-serif', 
+    fontSize: '1rem', 
+    transition: 'opacity 0.2s'
+  },
+  authSocials: { 
+    textAlign: 'center', 
+    marginTop: '2rem' 
+  },
+  authSocialsLabel: { 
+    color: 'rgba(255,255,255,0.5)', 
+    fontSize: '0.8rem', 
+    marginBottom: '0.75rem' 
+  },
+  authSocialLinks: { 
+    display: 'flex', 
+    justifyContent: 'center', 
+    gap: '1rem' 
+  },
+  authSocialLink: { 
+    color: COLORS.white, 
+    textDecoration: 'none', 
+    fontSize: '0.85rem',
+    opacity: 0.7,
+    transition: 'opacity 0.2s'
+  },
+  authTagline: { 
+    color: 'rgba(255,255,255,0.4)', 
+    textAlign: 'center', 
+    marginTop: '2rem', 
+    fontStyle: 'italic', 
+    fontSize: '0.85rem' 
+  },
 
   // App
-  app: { minHeight: '100vh', background: 'linear-gradient(180deg, #1a0a2e, #0a0a1a)', fontFamily: "'Inter', -apple-system, sans-serif", color: '#fff' },
+  app: { 
+    minHeight: '100vh', 
+    background: COLORS.lightGrey, 
+    fontFamily: 'Poppins, sans-serif', 
+    color: COLORS.darkBlue 
+  },
 
   // Toast
-  toast: { position: 'fixed', top: '1rem', left: '50%', transform: 'translateX(-50%)', padding: '1rem 1.5rem', borderRadius: '50px', color: '#fff', fontWeight: 600, fontSize: '0.9rem', zIndex: 9999, boxShadow: '0 10px 40px rgba(139,92,246,0.4)', animation: 'slideDown 0.3s ease' },
-
-  // Notifications
-  notifOverlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', zIndex: 1000 },
-  notifPanel: { position: 'absolute', right: 0, top: 0, bottom: 0, width: '100%', maxWidth: '360px', background: 'linear-gradient(180deg, #1a0a2e, #0a0a1a)', padding: '1rem', overflowY: 'auto', borderLeft: '1px solid rgba(139,92,246,0.2)' },
-  notifHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', paddingBottom: '1rem', borderBottom: '1px solid rgba(139,92,246,0.2)' },
-  notifMarkRead: { background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', cursor: 'pointer' },
-  notifEmpty: { color: 'rgba(255,255,255,0.4)', textAlign: 'center', padding: '2rem' },
-  notifList: { display: 'flex', flexDirection: 'column', gap: '0.5rem' },
-  notifItem: { padding: '0.75rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.85rem' },
-  notifItemUnread: { padding: '0.75rem', background: 'rgba(139,92,246,0.15)', borderRadius: '12px', borderLeft: '3px solid #8b5cf6', display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.85rem' },
-  notifTime: { fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)' },
+  toast: { 
+    position: 'fixed', 
+    top: '1rem', 
+    left: '50%', 
+    transform: 'translateX(-50%)', 
+    padding: '1rem 1.5rem', 
+    borderRadius: '8px', 
+    color: COLORS.white, 
+    fontWeight: 500, 
+    fontSize: '0.9rem', 
+    zIndex: 9999, 
+    boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
+  },
 
   // Header
-  header: { background: 'rgba(26,10,46,0.95)', backdropFilter: 'blur(10px)', padding: '0.75rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(139,92,246,0.15)', position: 'sticky', top: 0, zIndex: 100 },
-  headerLeft: { display: 'flex', alignItems: 'center', gap: '0.5rem' },
-  headerLogo: { fontSize: '1.5rem' },
-  headerTitle: { fontSize: '1.1rem', fontWeight: 700, margin: 0, background: 'linear-gradient(135deg, #fff, #c4b5fd)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' },
-  headerRight: { display: 'flex', alignItems: 'center', gap: '0.5rem' },
-  headerPoints: { background: 'linear-gradient(135deg, rgba(139,92,246,0.3), rgba(139,92,246,0.1))', border: '1px solid rgba(139,92,246,0.4)', padding: '0.4rem 0.75rem', borderRadius: '50px', display: 'flex', alignItems: 'center', gap: '0.35rem' },
-  headerPointsValue: { color: '#c4b5fd', fontWeight: 700, fontSize: '1rem' },
-  headerPointsIcon: { fontSize: '1rem' },
-  headerBtn: { background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.2)', width: '40px', height: '40px', borderRadius: '12px', cursor: 'pointer', fontSize: '1.2rem', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  badge: { position: 'absolute', top: '-2px', right: '-2px', background: '#ef4444', color: '#fff', fontSize: '0.55rem', fontWeight: 700, padding: '2px 5px', borderRadius: '10px', minWidth: '16px', textAlign: 'center' },
+  header: { 
+    background: COLORS.darkBlue, 
+    padding: '0.75rem 1rem', 
+    display: 'flex', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    position: 'sticky', 
+    top: 0, 
+    zIndex: 100 
+  },
+  headerLeft: { 
+    display: 'flex', 
+    alignItems: 'center', 
+    gap: '0.75rem' 
+  },
+  headerTitle: { 
+    color: COLORS.white, 
+    fontSize: '1.1rem', 
+    fontFamily: 'DM Serif Display, serif',
+    fontWeight: 400
+  },
+  headerRight: { 
+    display: 'flex', 
+    alignItems: 'center', 
+    gap: '0.5rem' 
+  },
+  headerPoints: { 
+    background: 'rgba(255,255,255,0.1)', 
+    padding: '0.4rem 0.75rem', 
+    borderRadius: '20px', 
+    display: 'flex', 
+    alignItems: 'center', 
+    gap: '0.35rem' 
+  },
+  headerPointsValue: { 
+    color: COLORS.white, 
+    fontWeight: 700, 
+    fontSize: '1rem' 
+  },
+  headerPointsLabel: { 
+    color: 'rgba(255,255,255,0.7)', 
+    fontSize: '0.75rem' 
+  },
+  headerBtn: { 
+    background: 'rgba(255,255,255,0.1)', 
+    border: 'none', 
+    width: '40px', 
+    height: '40px', 
+    borderRadius: '8px', 
+    cursor: 'pointer', 
+    position: 'relative', 
+    display: 'flex', 
+    alignItems: 'center', 
+    justifyContent: 'center'
+  },
+  headerBtnIcon: {
+    color: COLORS.white,
+    fontSize: '1rem'
+  },
+  badge: { 
+    position: 'absolute', 
+    top: '-4px', 
+    right: '-4px', 
+    background: COLORS.error, 
+    color: COLORS.white, 
+    fontSize: '0.65rem', 
+    fontWeight: 700, 
+    padding: '2px 6px', 
+    borderRadius: '10px', 
+    minWidth: '18px', 
+    textAlign: 'center' 
+  },
 
   // Nav
-  nav: { background: 'rgba(139,92,246,0.05)', padding: '0.5rem', display: 'flex', gap: '0.25rem', borderBottom: '1px solid rgba(139,92,246,0.1)' },
-  navBtn: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.15rem', padding: '0.6rem 0.25rem', background: 'transparent', border: 'none', borderRadius: '12px', cursor: 'pointer', color: 'rgba(255,255,255,0.5)', fontFamily: 'inherit', position: 'relative', transition: 'all 0.2s' },
-  navActive: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.15rem', padding: '0.6rem 0.25rem', background: 'linear-gradient(135deg, rgba(139,92,246,0.4), rgba(139,92,246,0.15))', border: 'none', borderRadius: '12px', cursor: 'pointer', color: '#fff', fontFamily: 'inherit', position: 'relative' },
-  navIcon: { fontSize: '1.25rem' },
-  navLabel: { fontSize: '0.65rem', fontWeight: 500 },
-  navBadge: { position: 'absolute', top: '2px', right: '10%', background: '#ef4444', color: '#fff', fontSize: '0.55rem', fontWeight: 700, padding: '1px 4px', borderRadius: '6px' },
+  nav: { 
+    background: COLORS.white, 
+    padding: '0.5rem', 
+    display: 'flex', 
+    gap: '0.25rem', 
+    borderBottom: `1px solid ${COLORS.mediumGrey}` 
+  },
+  navBtn: { 
+    flex: 1, 
+    padding: '0.75rem 0.5rem', 
+    background: 'transparent', 
+    border: 'none', 
+    borderRadius: '8px', 
+    cursor: 'pointer', 
+    color: COLORS.darkGrey, 
+    fontFamily: 'Poppins, sans-serif', 
+    fontSize: '0.85rem',
+    position: 'relative',
+    transition: 'all 0.2s' 
+  },
+  navActive: { 
+    flex: 1, 
+    padding: '0.75rem 0.5rem', 
+    background: COLORS.darkBlue, 
+    border: 'none', 
+    borderRadius: '8px', 
+    cursor: 'pointer', 
+    color: COLORS.white, 
+    fontFamily: 'Poppins, sans-serif', 
+    fontSize: '0.85rem',
+    fontWeight: 600,
+    position: 'relative'
+  },
+  navBadge: { 
+    position: 'absolute', 
+    top: '4px', 
+    right: '8px', 
+    background: COLORS.error, 
+    color: COLORS.white, 
+    fontSize: '0.6rem', 
+    fontWeight: 700, 
+    padding: '1px 5px', 
+    borderRadius: '6px' 
+  },
 
   // Main
-  main: { padding: '1rem', maxWidth: '600px', margin: '0 auto' },
+  main: { 
+    padding: '1rem', 
+    maxWidth: '600px', 
+    margin: '0 auto' 
+  },
+
+  // Page titles
+  pageTitle: {
+    fontFamily: 'DM Serif Display, serif',
+    fontSize: '1.5rem',
+    fontWeight: 400,
+    color: COLORS.darkBlue,
+    margin: '0 0 0.25rem'
+  },
+  pageSubtitle: {
+    color: COLORS.darkGrey,
+    fontSize: '0.9rem',
+    margin: 0
+  },
 
   // Dashboard
-  dashboard: { display: 'flex', flexDirection: 'column', gap: '1rem' },
+  dashboard: { 
+    display: 'flex', 
+    flexDirection: 'column', 
+    gap: '1rem' 
+  },
 
   // Hero
-  heroCard: { background: 'linear-gradient(135deg, #2d1b4e, #1a0a2e)', borderRadius: '24px', padding: '1.5rem', position: 'relative', overflow: 'hidden', border: '1px solid rgba(139,92,246,0.3)' },
-  heroContent: { position: 'relative', zIndex: 1 },
-  heroGreeting: { color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem' },
-  heroPointsRow: { display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.25rem' },
-  heroPoints: { fontSize: '3.5rem', fontWeight: 800, background: 'linear-gradient(135deg, #c4b5fd, #8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' },
-  heroGrape: { fontSize: '2rem' },
-  heroLabel: { color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem', display: 'block', marginTop: '0.25rem' },
-  heroDecor: { position: 'absolute', right: '-20px', bottom: '-20px', opacity: 0.15 },
-  heroGrapeLarge: { fontSize: '8rem' },
+  heroCard: { 
+    background: COLORS.darkBlue, 
+    borderRadius: '12px', 
+    padding: '1.5rem'
+  },
+  heroContent: {},
+  heroGreeting: { 
+    color: 'rgba(255,255,255,0.7)', 
+    fontSize: '0.9rem' 
+  },
+  heroPointsRow: { 
+    display: 'flex', 
+    alignItems: 'baseline', 
+    gap: '0.5rem', 
+    marginTop: '0.25rem' 
+  },
+  heroPoints: { 
+    fontSize: '3rem', 
+    fontWeight: 700, 
+    color: COLORS.white,
+    fontFamily: 'DM Serif Display, serif'
+  },
+  heroLabel: { 
+    color: 'rgba(255,255,255,0.7)', 
+    fontSize: '1rem' 
+  },
 
   // Stats
-  statsRow: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem' },
-  statCard: { background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '16px', padding: '1rem', textAlign: 'center' },
-  statValue: { display: 'block', fontSize: '1.5rem', fontWeight: 700, color: '#c4b5fd' },
-  statLabel: { fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)' },
-
-  // Quick Socials
-  quickSocials: { background: 'rgba(139,92,246,0.05)', border: '1px solid rgba(139,92,246,0.15)', borderRadius: '16px', padding: '1rem' },
-  quickSocialsTitle: { fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.75rem' },
-  quickSocialGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem' },
-  quickSocialBtn: { background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '12px', padding: '0.75rem 0.5rem', textAlign: 'center', color: '#fff', textDecoration: 'none', fontSize: '0.7rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem', transition: 'all 0.2s' },
-
-  // Pending Card
-  pendingCard: { background: 'linear-gradient(135deg, rgba(251,191,36,0.15), rgba(251,191,36,0.05))', border: '1px solid rgba(251,191,36,0.3)', borderRadius: '16px', padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem' },
-  pendingIcon: { fontSize: '2rem' },
-  pendingCount: { display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem' },
+  statsRow: { 
+    display: 'grid', 
+    gridTemplateColumns: 'repeat(3, 1fr)', 
+    gap: '0.75rem' 
+  },
+  statCard: { 
+    background: COLORS.white, 
+    borderRadius: '12px', 
+    padding: '1rem', 
+    textAlign: 'center',
+    border: `1px solid ${COLORS.mediumGrey}`
+  },
+  statValue: { 
+    display: 'block', 
+    fontSize: '1.5rem', 
+    fontWeight: 700, 
+    color: COLORS.darkBlue,
+    fontFamily: 'DM Serif Display, serif'
+  },
+  statLabel: { 
+    fontSize: '0.75rem', 
+    color: COLORS.darkGrey 
+  },
 
   // Section
-  section: { background: 'rgba(139,92,246,0.05)', border: '1px solid rgba(139,92,246,0.15)', borderRadius: '16px', padding: '1rem' },
-  sectionTitle: { fontSize: '1rem', fontWeight: 600, marginBottom: '0.5rem' },
-  sectionDesc: { color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem', marginBottom: '1rem' },
-  empty: { color: 'rgba(255,255,255,0.4)', textAlign: 'center', padding: '2rem' },
+  section: { 
+    background: COLORS.white, 
+    borderRadius: '12px', 
+    padding: '1rem',
+    border: `1px solid ${COLORS.mediumGrey}`
+  },
+  sectionTitle: { 
+    fontFamily: 'DM Serif Display, serif',
+    fontSize: '1.1rem', 
+    fontWeight: 400, 
+    marginBottom: '0.75rem',
+    color: COLORS.darkBlue
+  },
+  sectionDesc: {
+    color: COLORS.darkGrey,
+    fontSize: '0.85rem',
+    marginBottom: '1rem'
+  },
+
+  // Empty states
+  emptyText: { 
+    color: COLORS.darkGrey, 
+    textAlign: 'center', 
+    padding: '1.5rem',
+    fontSize: '0.9rem'
+  },
+  emptyState: {
+    background: COLORS.white,
+    borderRadius: '12px',
+    padding: '3rem 1.5rem',
+    textAlign: 'center',
+    border: `1px solid ${COLORS.mediumGrey}`
+  },
+  emptyStateSmall: {
+    color: COLORS.darkGrey,
+    fontSize: '0.85rem',
+    marginTop: '0.5rem'
+  },
+
+  // Pending Card
+  pendingCard: { 
+    background: COLORS.white, 
+    border: `1px solid ${COLORS.warning}`, 
+    borderRadius: '12px', 
+    padding: '1rem'
+  },
+  pendingCount: { 
+    display: 'block', 
+    color: COLORS.darkGrey, 
+    fontSize: '0.85rem',
+    marginTop: '0.25rem'
+  },
 
   // Activity
-  activityList: { display: 'flex', flexDirection: 'column', gap: '0.5rem' },
-  activityItem: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px' },
-  activityItemHV: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', background: 'linear-gradient(90deg, rgba(251,191,36,0.15), rgba(251,191,36,0.02))', borderRadius: '12px', border: '1px solid rgba(251,191,36,0.3)' },
-  activityInfo: { flex: 1, minWidth: 0 },
-  activityName: { display: 'block', fontSize: '0.85rem', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
-  activityDate: { display: 'block', fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)' },
-  activityPoints: { fontWeight: 700, color: '#c4b5fd', fontSize: '0.95rem', marginLeft: '1rem' },
-  hvBadge: { display: 'inline-block', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', fontSize: '0.55rem', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', marginRight: '0.5rem', marginBottom: '0.125rem' },
-  hvBadgeSmall: { position: 'absolute', top: '0.5rem', left: '0.5rem', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', fontSize: '0.5rem', fontWeight: 700, padding: '2px 5px', borderRadius: '4px' },
-
-  // Social Section
-  socialSection: { display: 'flex', flexDirection: 'column', gap: '1.5rem' },
-  platformLinks: { background: 'rgba(139,92,246,0.05)', border: '1px solid rgba(139,92,246,0.15)', borderRadius: '20px', padding: '1.25rem' },
-  platformGrid: { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem' },
-  platformCard: { background: 'linear-gradient(135deg, rgba(139,92,246,0.15), rgba(139,92,246,0.05))', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '16px', padding: '1rem', textDecoration: 'none', color: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem', transition: 'all 0.2s' },
-  platformIcon: { fontSize: '2rem' },
-  platformName: { fontWeight: 600, fontSize: '0.9rem' },
-  platformHandle: { color: 'rgba(255,255,255,0.4)', fontSize: '0.7rem' },
+  activityList: { 
+    display: 'flex', 
+    flexDirection: 'column', 
+    gap: '0.5rem' 
+  },
+  activityItem: { 
+    display: 'flex', 
+    alignItems: 'center', 
+    justifyContent: 'space-between', 
+    padding: '0.75rem', 
+    background: COLORS.lightGrey, 
+    borderRadius: '8px' 
+  },
+  activityInfo: { 
+    flex: 1, 
+    minWidth: 0 
+  },
+  activityName: { 
+    display: 'block', 
+    fontSize: '0.9rem', 
+    fontWeight: 500, 
+    whiteSpace: 'nowrap', 
+    overflow: 'hidden', 
+    textOverflow: 'ellipsis' 
+  },
+  activityDate: { 
+    display: 'block', 
+    fontSize: '0.75rem', 
+    color: COLORS.darkGrey 
+  },
+  activityPoints: { 
+    fontWeight: 700, 
+    color: COLORS.success, 
+    fontSize: '0.95rem', 
+    marginLeft: '1rem' 
+  },
+  hvBadge: { 
+    display: 'inline-block', 
+    background: COLORS.accent, 
+    color: COLORS.darkBlue, 
+    fontSize: '0.6rem', 
+    fontWeight: 700, 
+    padding: '2px 6px', 
+    borderRadius: '4px', 
+    marginBottom: '0.25rem' 
+  },
 
   // Earn Section
-  earnView: { display: 'flex', flexDirection: 'column', gap: '1.5rem' },
-  earnSection: { background: 'rgba(139,92,246,0.05)', border: '1px solid rgba(139,92,246,0.15)', borderRadius: '20px', padding: '1.25rem' },
-  actionGrid: { display: 'flex', flexDirection: 'column', gap: '0.75rem' },
-  actionCard: { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(139,92,246,0.15)', borderRadius: '16px', padding: '1rem', position: 'relative', display: 'flex', flexDirection: 'column', gap: '0.5rem' },
-  actionCardHV: { background: 'linear-gradient(135deg, rgba(251,191,36,0.1), rgba(251,191,36,0.02))', border: '1px solid rgba(251,191,36,0.3)', borderRadius: '16px', padding: '1rem', position: 'relative', display: 'flex', flexDirection: 'column', gap: '0.5rem' },
-  actionEmoji: { fontSize: '1.5rem' },
-  actionName: { fontWeight: 600, fontSize: '1rem' },
-  actionPoints: { color: '#c4b5fd', fontWeight: 700, fontSize: '0.9rem' },
-  actionDesc: { color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem' },
-  pendingBadge: { background: 'rgba(251,191,36,0.15)', color: '#fbbf24', padding: '0.25rem 0.5rem', borderRadius: '6px', fontSize: '0.75rem', alignSelf: 'flex-start' },
-  actionBtn: { background: 'linear-gradient(135deg, #8b5cf6, #6366f1)', color: '#fff', border: 'none', padding: '0.6rem 1rem', borderRadius: '10px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.85rem', alignSelf: 'flex-start', marginTop: '0.25rem' },
-  actionForm: { marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' },
-  actionTextarea: { padding: '0.75rem', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '10px', color: '#fff', fontFamily: 'inherit', fontSize: '0.9rem', resize: 'none', outline: 'none' },
-  submitBtn: { background: 'linear-gradient(135deg, #22c55e, #16a34a)', color: '#fff', border: 'none', padding: '0.75rem', borderRadius: '10px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' },
+  earnSection: { 
+    display: 'flex', 
+    flexDirection: 'column', 
+    gap: '1rem' 
+  },
+  infoBanner: {
+    background: COLORS.white,
+    border: `1px solid ${COLORS.mediumGrey}`,
+    borderRadius: '12px',
+    padding: '1rem',
+    display: 'flex',
+    gap: '1rem',
+    alignItems: 'flex-start'
+  },
+  infoBannerIcon: {
+    background: COLORS.darkBlue,
+    color: COLORS.white,
+    width: '24px',
+    height: '24px',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '0.8rem',
+    fontWeight: 700,
+    flexShrink: 0
+  },
+  infoBannerText: {
+    color: COLORS.darkGrey,
+    fontSize: '0.85rem',
+    marginTop: '0.25rem'
+  },
+  earnCategory: {
+    background: COLORS.white,
+    borderRadius: '12px',
+    padding: '1rem',
+    border: `1px solid ${COLORS.mediumGrey}`
+  },
+  earnCategoryTitle: {
+    fontFamily: 'DM Serif Display, serif',
+    fontSize: '1.1rem',
+    fontWeight: 400,
+    marginBottom: '0.75rem',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem'
+  },
+  earnCategoryIcon: {
+    background: COLORS.darkBlue,
+    color: COLORS.white,
+    width: '28px',
+    height: '28px',
+    borderRadius: '6px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '0.8rem',
+    fontWeight: 600
+  },
+  earnList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.5rem'
+  },
+  earnItem: {
+    background: COLORS.lightGrey,
+    borderRadius: '8px',
+    padding: '0.875rem'
+  },
+  earnItemHV: {
+    background: `linear-gradient(135deg, ${COLORS.lightGrey}, rgba(201,169,98,0.1))`,
+    borderRadius: '8px',
+    padding: '0.875rem',
+    border: `1px solid ${COLORS.accent}`,
+    position: 'relative'
+  },
+  earnItemContent: {},
+  earnItemHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '0.25rem'
+  },
+  earnItemName: {
+    fontWeight: 600,
+    fontSize: '0.95rem'
+  },
+  earnItemPoints: {
+    fontWeight: 700,
+    color: COLORS.success
+  },
+  earnItemDesc: {
+    color: COLORS.darkGrey,
+    fontSize: '0.8rem',
+    margin: 0
+  },
+  pendingBadge: {
+    display: 'inline-block',
+    background: 'rgba(245,158,11,0.1)',
+    color: COLORS.warning,
+    padding: '0.25rem 0.5rem',
+    borderRadius: '4px',
+    fontSize: '0.75rem',
+    marginTop: '0.5rem'
+  },
+  claimSmallBtn: {
+    background: COLORS.darkBlue,
+    color: COLORS.white,
+    border: 'none',
+    padding: '0.5rem 1rem',
+    borderRadius: '6px',
+    fontSize: '0.8rem',
+    fontWeight: 600,
+    cursor: 'pointer',
+    fontFamily: 'Poppins, sans-serif',
+    marginTop: '0.5rem'
+  },
+  claimForm: {
+    marginTop: '0.75rem',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.5rem'
+  },
+  claimTextarea: {
+    padding: '0.75rem',
+    background: COLORS.white,
+    border: `1px solid ${COLORS.mediumGrey}`,
+    borderRadius: '8px',
+    color: COLORS.darkBlue,
+    fontFamily: 'Poppins, sans-serif',
+    fontSize: '0.9rem',
+    resize: 'none',
+    outline: 'none'
+  },
+  submitBtn: {
+    background: COLORS.success,
+    color: COLORS.white,
+    border: 'none',
+    padding: '0.75rem',
+    borderRadius: '8px',
+    fontWeight: 600,
+    cursor: 'pointer',
+    fontFamily: 'Poppins, sans-serif'
+  },
 
-  // Referral
-  referralSection: { background: 'linear-gradient(135deg, rgba(236,72,153,0.1), rgba(236,72,153,0.02))', border: '1px solid rgba(236,72,153,0.2)', borderRadius: '20px', padding: '1.25rem' },
-  referralForm: { display: 'flex', flexDirection: 'column', gap: '0.5rem' },
-  input: { padding: '0.75rem', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '10px', color: '#fff', fontFamily: 'inherit', fontSize: '0.9rem', outline: 'none' },
-  referralBtn: { background: 'linear-gradient(135deg, #ec4899, #db2777)', color: '#fff', border: 'none', padding: '0.75rem', borderRadius: '10px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' },
-  myReferrals: { marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid rgba(236,72,153,0.2)' },
-  myReferralsTitle: { fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem' },
-  referralCard: { background: 'rgba(255,255,255,0.03)', borderRadius: '10px', padding: '0.75rem', marginBottom: '0.5rem' },
-  referralStatus: { display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', marginTop: '0.25rem' },
+  // Social Links
+  socialLinksSection: {
+    background: COLORS.white,
+    borderRadius: '12px',
+    padding: '1rem',
+    border: `1px solid ${COLORS.mediumGrey}`
+  },
+  socialLinksGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, 1fr)',
+    gap: '0.75rem'
+  },
+  socialLinkCard: {
+    background: COLORS.lightGrey,
+    borderRadius: '8px',
+    padding: '1rem',
+    textDecoration: 'none',
+    color: COLORS.darkBlue,
+    textAlign: 'center',
+    transition: 'background 0.2s'
+  },
+  socialLinkName: {
+    display: 'block',
+    fontWeight: 600,
+    fontSize: '0.85rem'
+  },
+  socialLinkHandle: {
+    display: 'block',
+    color: COLORS.darkGrey,
+    fontSize: '0.7rem',
+    marginTop: '0.25rem'
+  },
 
   // Shop
-  shopContainer: { display: 'flex', flexDirection: 'column', gap: '1.25rem' },
-  shopHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' },
-  shopTitle: { fontSize: '1.5rem', fontWeight: 700, margin: 0 },
-  shopSubtitle: { color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem', marginTop: '0.25rem' },
-  shopBalance: { background: 'linear-gradient(135deg, rgba(139,92,246,0.3), rgba(139,92,246,0.1))', border: '1px solid rgba(139,92,246,0.4)', borderRadius: '16px', padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' },
-  shopBalanceIcon: { fontSize: '1.5rem' },
-  shopBalanceValue: { display: 'block', color: '#c4b5fd', fontSize: '1.25rem', fontWeight: 800 },
-  shopBalanceLabel: { display: 'block', color: 'rgba(196,181,253,0.7)', fontSize: '0.65rem' },
-  shopFilters: { display: 'flex', gap: '0.375rem', flexWrap: 'wrap' },
-  shopFilterBtn: { background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.2)', padding: '0.5rem 0.875rem', borderRadius: '50px', color: 'rgba(255,255,255,0.6)', fontSize: '0.75rem', cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.2s' },
-  shopGrid: { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' },
-  productCard: { background: 'linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02))', border: '1px solid rgba(139,92,246,0.15)', borderRadius: '20px', padding: '1rem', position: 'relative', display: 'flex', flexDirection: 'column', transition: 'all 0.3s', animation: 'fadeIn 0.5s ease forwards', overflow: 'hidden' },
-  categoryRibbon: { position: 'absolute', top: '12px', left: '-30px', padding: '2px 30px', fontSize: '0.55rem', fontWeight: 700, color: '#fff', textTransform: 'uppercase', transform: 'rotate(-45deg)', letterSpacing: '0.5px' },
-  popularBadge: { position: 'absolute', top: '0.5rem', right: '2.5rem', background: 'linear-gradient(135deg, #ef4444, #dc2626)', color: '#fff', fontSize: '0.55rem', fontWeight: 700, padding: '3px 6px', borderRadius: '6px' },
-  wishlistBtn: { position: 'absolute', top: '0.5rem', right: '0.5rem', background: 'rgba(255,255,255,0.1)', border: 'none', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', zIndex: 2 },
-  productVisual: { position: 'relative', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0.5rem', marginTop: '0.5rem' },
-  productEmoji: { fontSize: '3rem', position: 'relative', zIndex: 1 },
-  productGlow: { position: 'absolute', width: '70px', height: '70px', borderRadius: '50%' },
-  productInfo: { flex: 1 },
-  productName: { fontSize: '0.9rem', fontWeight: 600, margin: '0.25rem 0' },
-  productDesc: { fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)', lineHeight: 1.4 },
-  productFooter: { marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(139,92,246,0.15)' },
-  productPrice: { marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.25rem' },
-  priceValue: { fontSize: '1.25rem', fontWeight: 800, color: '#c4b5fd' },
-  priceGrape: { fontSize: '1rem' },
-  pendingStatus: { background: 'rgba(251,191,36,0.15)', color: '#fbbf24', padding: '0.5rem', borderRadius: '10px', fontSize: '0.75rem', textAlign: 'center' },
-  claimBtn: { width: '100%', background: 'linear-gradient(135deg, #8b5cf6, #6366f1)', color: '#fff', border: 'none', padding: '0.6rem', borderRadius: '10px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.85rem', transition: 'all 0.2s' },
-  needMore: { background: 'rgba(139,92,246,0.1)', color: 'rgba(196,181,253,0.7)', padding: '0.5rem', borderRadius: '10px', fontSize: '0.75rem', textAlign: 'center' },
-  progressBarWrap: { height: '4px', background: 'rgba(139,92,246,0.2)', borderRadius: '2px', marginTop: '0.5rem', overflow: 'hidden' },
-  progressBarFill: { height: '100%', borderRadius: '2px', transition: 'width 0.5s ease' },
-  emptyShop: { textAlign: 'center', padding: '3rem', color: 'rgba(255,255,255,0.4)' },
-  emptyEmoji: { fontSize: '3rem', display: 'block', marginBottom: '1rem', opacity: 0.5 },
+  shopContainer: { 
+    display: 'flex', 
+    flexDirection: 'column', 
+    gap: '1rem' 
+  },
+  shopHeader: { 
+    display: 'flex', 
+    justifyContent: 'space-between', 
+    alignItems: 'flex-start', 
+    gap: '1rem' 
+  },
+  shopBalance: { 
+    background: COLORS.darkBlue, 
+    borderRadius: '12px', 
+    padding: '0.75rem 1rem', 
+    textAlign: 'center' 
+  },
+  shopBalanceLabel: { 
+    display: 'block', 
+    color: 'rgba(255,255,255,0.7)', 
+    fontSize: '0.7rem' 
+  },
+  shopBalanceValue: { 
+    display: 'block', 
+    color: COLORS.white, 
+    fontSize: '1.5rem', 
+    fontWeight: 700,
+    fontFamily: 'DM Serif Display, serif'
+  },
+  shopBalanceUnit: { 
+    display: 'block', 
+    color: 'rgba(255,255,255,0.7)', 
+    fontSize: '0.7rem' 
+  },
+  shopGrid: { 
+    display: 'grid', 
+    gridTemplateColumns: 'repeat(2, 1fr)', 
+    gap: '1rem' 
+  },
+  productCard: { 
+    background: COLORS.white, 
+    border: `1px solid ${COLORS.mediumGrey}`, 
+    borderRadius: '12px', 
+    overflow: 'hidden',
+    display: 'flex',
+    flexDirection: 'column'
+  },
+  productImageWrap: {
+    height: '120px',
+    background: COLORS.lightGrey,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  productImage: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover'
+  },
+  productImagePlaceholder: {
+    width: '60px',
+    height: '60px',
+    background: COLORS.mediumGrey,
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  productImagePlaceholderText: {
+    fontSize: '1.5rem',
+    color: COLORS.darkGrey,
+    fontFamily: 'DM Serif Display, serif'
+  },
+  productInfo: { 
+    flex: 1,
+    padding: '0.875rem'
+  },
+  productCategory: { 
+    fontSize: '0.65rem', 
+    color: COLORS.darkGrey, 
+    textTransform: 'uppercase', 
+    letterSpacing: '0.5px' 
+  },
+  productName: { 
+    fontSize: '0.95rem', 
+    fontWeight: 600, 
+    margin: '0.25rem 0',
+    fontFamily: 'DM Serif Display, serif'
+  },
+  productDesc: { 
+    fontSize: '0.75rem', 
+    color: COLORS.darkGrey, 
+    lineHeight: 1.4,
+    margin: 0
+  },
+  productFooter: { 
+    padding: '0.875rem',
+    borderTop: `1px solid ${COLORS.lightGrey}`
+  },
+  productPrice: { 
+    marginBottom: '0.5rem' 
+  },
+  priceValue: { 
+    fontSize: '1.25rem', 
+    fontWeight: 700, 
+    color: COLORS.darkBlue,
+    fontFamily: 'DM Serif Display, serif'
+  },
+  priceUnit: { 
+    fontSize: '0.75rem', 
+    color: COLORS.darkGrey, 
+    marginLeft: '0.25rem' 
+  },
+  pendingStatus: { 
+    background: COLORS.lightGrey, 
+    color: COLORS.darkGrey, 
+    padding: '0.5rem', 
+    borderRadius: '8px', 
+    fontSize: '0.8rem', 
+    textAlign: 'center' 
+  },
+  claimBtn: { 
+    width: '100%', 
+    background: COLORS.darkBlue, 
+    color: COLORS.white, 
+    border: 'none', 
+    padding: '0.6rem', 
+    borderRadius: '8px', 
+    fontWeight: 600, 
+    cursor: 'pointer', 
+    fontFamily: 'Poppins, sans-serif', 
+    fontSize: '0.9rem'
+  },
+  needMore: { 
+    background: COLORS.lightGrey, 
+    color: COLORS.darkGrey, 
+    padding: '0.5rem', 
+    borderRadius: '8px', 
+    fontSize: '0.8rem', 
+    textAlign: 'center' 
+  },
+  progressBarWrap: { 
+    height: '4px', 
+    background: COLORS.mediumGrey, 
+    borderRadius: '2px', 
+    margin: '0.5rem 0.875rem 0.875rem', 
+    overflow: 'hidden' 
+  },
+  progressBarFill: { 
+    height: '100%', 
+    background: COLORS.darkBlue, 
+    borderRadius: '2px', 
+    transition: 'width 0.5s ease' 
+  },
 
-  // Claim Modal
-  modalOverlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' },
-  claimModal: { background: 'linear-gradient(135deg, #1a0a2e, #0a0a1a)', borderRadius: '24px', padding: '1.5rem', maxWidth: '400px', width: '100%', border: '1px solid rgba(139,92,246,0.3)', position: 'relative', overflow: 'hidden' },
-  modalHeader: { display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' },
-  modalEmojiWrap: { width: '64px', height: '64px', background: 'rgba(139,92,246,0.2)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  modalEmoji: { fontSize: '2.5rem' },
-  modalCategory: { fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase' },
-  modalTitle: { fontSize: '1.25rem', fontWeight: 700, margin: '0.25rem 0 0' },
-  modalDesc: { color: 'rgba(255,255,255,0.6)', fontSize: '0.9rem', marginBottom: '1rem', lineHeight: 1.5 },
-  modalPriceBox: { background: 'rgba(139,92,246,0.1)', borderRadius: '12px', padding: '1rem', marginBottom: '1rem' },
-  modalPriceRow: { display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', fontSize: '0.9rem' },
-  modalPriceValue: { color: '#c4b5fd', fontWeight: 700 },
-  modalDivider: { height: '1px', background: 'rgba(139,92,246,0.2)', margin: '0.25rem 0' },
-  modalActions: { display: 'flex', gap: '0.75rem' },
-  modalCancel: { flex: 1, background: 'rgba(255,255,255,0.1)', color: '#fff', border: 'none', padding: '0.875rem', borderRadius: '12px', fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' },
-  modalConfirm: { flex: 1, background: 'linear-gradient(135deg, #8b5cf6, #6366f1)', color: '#fff', border: 'none', padding: '0.875rem', borderRadius: '12px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' },
-  successAnimation: { textAlign: 'center', padding: '2rem 0', position: 'relative' },
-  successConfetti: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, pointerEvents: 'none' },
-  confettiPiece: { position: 'absolute', width: '8px', height: '8px', borderRadius: '2px', animation: 'confettiFall 1s ease-out forwards' },
-  successEmoji: { fontSize: '4rem', display: 'block', marginBottom: '1rem', animation: 'bounce 0.5s ease' },
-  successTitle: { fontSize: '1.5rem', fontWeight: 700, margin: 0 },
-  successText: { color: 'rgba(255,255,255,0.6)', marginTop: '0.5rem' },
+  // Modal
+  modalOverlay: { 
+    position: 'fixed', 
+    top: 0, 
+    left: 0, 
+    right: 0, 
+    bottom: 0, 
+    background: 'rgba(0,0,0,0.5)', 
+    display: 'flex', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    zIndex: 1000, 
+    padding: '1rem' 
+  },
+  modal: { 
+    background: COLORS.white, 
+    borderRadius: '16px', 
+    padding: '1.5rem', 
+    maxWidth: '400px', 
+    width: '100%'
+  },
+  modalHeader: { 
+    display: 'flex', 
+    alignItems: 'center', 
+    gap: '1rem', 
+    marginBottom: '1rem' 
+  },
+  modalImage: {
+    width: '64px',
+    height: '64px',
+    borderRadius: '12px',
+    objectFit: 'cover'
+  },
+  modalImagePlaceholder: {
+    width: '64px',
+    height: '64px',
+    background: COLORS.lightGrey,
+    borderRadius: '12px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '1.5rem',
+    color: COLORS.darkGrey,
+    fontFamily: 'DM Serif Display, serif'
+  },
+  modalCategory: { 
+    fontSize: '0.75rem', 
+    color: COLORS.darkGrey,
+    textTransform: 'uppercase'
+  },
+  modalTitle: { 
+    fontSize: '1.25rem', 
+    fontWeight: 600, 
+    margin: '0.25rem 0 0',
+    fontFamily: 'DM Serif Display, serif'
+  },
+  modalDesc: { 
+    color: COLORS.darkGrey, 
+    fontSize: '0.9rem', 
+    marginBottom: '1rem', 
+    lineHeight: 1.5 
+  },
+  modalPriceBox: { 
+    background: COLORS.lightGrey, 
+    borderRadius: '12px', 
+    padding: '1rem', 
+    marginBottom: '1rem' 
+  },
+  modalPriceRow: { 
+    display: 'flex', 
+    justifyContent: 'space-between', 
+    padding: '0.5rem 0', 
+    fontSize: '0.9rem' 
+  },
+  modalPriceValue: { 
+    fontWeight: 700 
+  },
+  modalDivider: { 
+    height: '1px', 
+    background: COLORS.mediumGrey, 
+    margin: '0.25rem 0' 
+  },
+  modalActions: { 
+    display: 'flex', 
+    gap: '0.75rem' 
+  },
+  modalCancel: { 
+    flex: 1, 
+    background: COLORS.lightGrey, 
+    color: COLORS.darkBlue, 
+    border: 'none', 
+    padding: '0.875rem', 
+    borderRadius: '8px', 
+    fontWeight: 500, 
+    cursor: 'pointer', 
+    fontFamily: 'Poppins, sans-serif' 
+  },
+  modalConfirm: { 
+    flex: 1, 
+    background: COLORS.darkBlue, 
+    color: COLORS.white, 
+    border: 'none', 
+    padding: '0.875rem', 
+    borderRadius: '8px', 
+    fontWeight: 600, 
+    cursor: 'pointer', 
+    fontFamily: 'Poppins, sans-serif' 
+  },
+  successAnimation: { 
+    textAlign: 'center', 
+    padding: '2rem 0' 
+  },
+  successIcon: {
+    width: '64px',
+    height: '64px',
+    background: COLORS.success,
+    color: COLORS.white,
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '2rem',
+    margin: '0 auto 1rem'
+  },
+  successTitle: { 
+    fontSize: '1.5rem', 
+    fontWeight: 600, 
+    margin: 0,
+    fontFamily: 'DM Serif Display, serif'
+  },
+  successText: { 
+    color: COLORS.darkGrey, 
+    marginTop: '0.5rem' 
+  },
 
   // Team
-  teamView: { display: 'flex', flexDirection: 'column', gap: '1rem' },
-  pageTitle: { fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.5rem' },
-  recognitionCard: { background: 'linear-gradient(135deg, rgba(236,72,153,0.15), rgba(236,72,153,0.05))', border: '1px solid rgba(236,72,153,0.3)', borderRadius: '20px', padding: '1.25rem', textAlign: 'center' },
-  canRecognize: { display: 'inline-block', background: 'rgba(34,197,94,0.15)', color: '#22c55e', padding: '0.5rem 1rem', borderRadius: '50px', fontSize: '0.8rem', marginTop: '0.5rem' },
-  cantRecognize: { display: 'inline-block', background: 'rgba(251,191,36,0.15)', color: '#fbbf24', padding: '0.5rem 1rem', borderRadius: '50px', fontSize: '0.8rem', marginTop: '0.5rem' },
-  colleagueGrid: { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem' },
-  colleagueCard: { background: 'rgba(139,92,246,0.05)', border: '1px solid rgba(139,92,246,0.15)', borderRadius: '16px', padding: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' },
-  colleagueAvatar: { fontSize: '2.5rem', marginBottom: '0.5rem' },
-  colleagueName: { fontWeight: 600, margin: 0, fontSize: '0.95rem' },
-  colleagueRole: { color: 'rgba(255,255,255,0.5)', fontSize: '0.7rem' },
-  colleaguePoints: { color: '#c4b5fd', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem' },
-  giveBtn: { width: '100%', background: 'linear-gradient(135deg, #ec4899, #db2777)', color: '#fff', border: 'none', padding: '0.6rem', borderRadius: '10px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.8rem' },
-  giveBtnDisabled: { width: '100%', background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.3)', border: 'none', padding: '0.6rem', borderRadius: '10px', fontFamily: 'inherit', fontSize: '0.8rem', cursor: 'not-allowed' },
-  leaderboard: { display: 'flex', flexDirection: 'column', gap: '0.5rem' },
-  leaderRow: { display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px' },
-  leaderRowMe: { display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem', background: 'linear-gradient(90deg, rgba(139,92,246,0.2), rgba(139,92,246,0.05))', borderRadius: '12px', border: '1px solid rgba(139,92,246,0.4)' },
-  rank: { width: '24px', height: '24px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700, color: 'rgba(255,255,255,0.5)' },
-  rank1: { width: '24px', height: '24px', borderRadius: '50%', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700, color: '#fff' },
-  rank2: { width: '24px', height: '24px', borderRadius: '50%', background: 'linear-gradient(135deg, #9ca3af, #6b7280)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700, color: '#fff' },
-  rank3: { width: '24px', height: '24px', borderRadius: '50%', background: 'linear-gradient(135deg, #d97706, #b45309)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700, color: '#fff' },
-  leaderAvatar: { fontSize: '1.5rem' },
-  leaderInfo: { flex: 1 },
-  leaderName: { display: 'block', fontWeight: 600, fontSize: '0.9rem' },
-  leaderRole: { display: 'block', fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)' },
-  leaderPoints: { fontWeight: 700, color: '#c4b5fd' },
+  teamView: { 
+    display: 'flex', 
+    flexDirection: 'column', 
+    gap: '1rem' 
+  },
+  recognitionCard: { 
+    background: COLORS.white, 
+    border: `1px solid ${COLORS.mediumGrey}`,
+    borderRadius: '12px', 
+    padding: '1.25rem', 
+    textAlign: 'center' 
+  },
+  recognitionTitle: {
+    fontFamily: 'DM Serif Display, serif',
+    fontSize: '1.1rem',
+    fontWeight: 400,
+    margin: '0 0 0.5rem'
+  },
+  recognitionDesc: {
+    color: COLORS.darkGrey,
+    fontSize: '0.85rem',
+    margin: 0
+  },
+  canRecognize: { 
+    display: 'inline-block', 
+    background: 'rgba(34,197,94,0.1)', 
+    color: COLORS.success, 
+    padding: '0.5rem 1rem', 
+    borderRadius: '20px', 
+    fontSize: '0.8rem', 
+    marginTop: '0.75rem' 
+  },
+  cantRecognize: { 
+    display: 'inline-block', 
+    background: COLORS.lightGrey, 
+    color: COLORS.darkGrey, 
+    padding: '0.5rem 1rem', 
+    borderRadius: '20px', 
+    fontSize: '0.8rem', 
+    marginTop: '0.75rem' 
+  },
+  colleagueGrid: { 
+    display: 'grid', 
+    gridTemplateColumns: 'repeat(2, 1fr)', 
+    gap: '0.75rem' 
+  },
+  colleagueCard: { 
+    background: COLORS.white, 
+    border: `1px solid ${COLORS.mediumGrey}`, 
+    borderRadius: '12px', 
+    padding: '1rem', 
+    display: 'flex', 
+    flexDirection: 'column', 
+    alignItems: 'center', 
+    textAlign: 'center' 
+  },
+  colleagueAvatar: { 
+    width: '48px',
+    height: '48px',
+    background: COLORS.darkBlue,
+    color: COLORS.white,
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '1.25rem',
+    fontFamily: 'DM Serif Display, serif',
+    marginBottom: '0.5rem' 
+  },
+  colleagueName: { 
+    fontWeight: 600, 
+    margin: 0, 
+    fontSize: '0.95rem' 
+  },
+  colleaguePoints: { 
+    color: COLORS.darkGrey, 
+    fontSize: '0.8rem', 
+    marginBottom: '0.5rem' 
+  },
+  giveBtn: { 
+    width: '100%', 
+    background: COLORS.darkBlue, 
+    color: COLORS.white, 
+    border: 'none', 
+    padding: '0.6rem', 
+    borderRadius: '8px', 
+    fontWeight: 600, 
+    cursor: 'pointer', 
+    fontFamily: 'Poppins, sans-serif', 
+    fontSize: '0.85rem' 
+  },
+  giveBtnDisabled: { 
+    width: '100%', 
+    background: COLORS.lightGrey, 
+    color: COLORS.darkGrey, 
+    border: 'none', 
+    padding: '0.6rem', 
+    borderRadius: '8px', 
+    fontFamily: 'Poppins, sans-serif', 
+    fontSize: '0.85rem', 
+    cursor: 'not-allowed' 
+  },
+
+  // Referral
+  referralSection: {
+    background: COLORS.white,
+    border: `1px solid ${COLORS.mediumGrey}`,
+    borderRadius: '12px',
+    padding: '1rem'
+  },
+  referralForm: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.5rem'
+  },
+  myReferrals: {
+    marginTop: '1rem',
+    paddingTop: '1rem',
+    borderTop: `1px solid ${COLORS.mediumGrey}`
+  },
+  myReferralsTitle: {
+    fontSize: '0.9rem',
+    fontWeight: 600,
+    marginBottom: '0.5rem'
+  },
+  referralItem: {
+    background: COLORS.lightGrey,
+    borderRadius: '8px',
+    padding: '0.75rem',
+    marginBottom: '0.5rem'
+  },
+  referralStatus: {
+    display: 'block',
+    color: COLORS.darkGrey,
+    fontSize: '0.8rem',
+    marginTop: '0.25rem'
+  },
+
+  // Leaderboard
+  leaderboard: { 
+    display: 'flex', 
+    flexDirection: 'column', 
+    gap: '0.5rem' 
+  },
+  leaderRow: { 
+    display: 'flex', 
+    alignItems: 'center', 
+    gap: '0.75rem', 
+    padding: '0.75rem', 
+    background: COLORS.lightGrey, 
+    borderRadius: '8px' 
+  },
+  leaderRowMe: { 
+    display: 'flex', 
+    alignItems: 'center', 
+    gap: '0.75rem', 
+    padding: '0.75rem', 
+    background: COLORS.darkBlue, 
+    borderRadius: '8px',
+    color: COLORS.white
+  },
+  leaderRank: { 
+    width: '24px', 
+    height: '24px', 
+    borderRadius: '50%', 
+    background: COLORS.mediumGrey, 
+    display: 'flex', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    fontSize: '0.75rem', 
+    fontWeight: 700
+  },
+  leaderAvatar: { 
+    width: '32px',
+    height: '32px',
+    background: COLORS.darkBlue,
+    color: COLORS.white,
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '0.9rem',
+    fontFamily: 'DM Serif Display, serif'
+  },
+  leaderInfo: { 
+    flex: 1 
+  },
+  leaderName: { 
+    display: 'block', 
+    fontWeight: 600, 
+    fontSize: '0.9rem' 
+  },
+  leaderPoints: { 
+    fontWeight: 700 
+  },
+
+  // Notifications
+  notifOverlay: { 
+    position: 'fixed', 
+    top: 0, 
+    left: 0, 
+    right: 0, 
+    bottom: 0, 
+    background: 'rgba(0,0,0,0.5)', 
+    zIndex: 1000 
+  },
+  notifPanel: { 
+    position: 'absolute', 
+    right: 0, 
+    top: 0, 
+    bottom: 0, 
+    width: '100%', 
+    maxWidth: '360px', 
+    background: COLORS.white, 
+    padding: '1rem', 
+    overflowY: 'auto'
+  },
+  notifHeader: { 
+    display: 'flex', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    marginBottom: '1rem', 
+    paddingBottom: '1rem', 
+    borderBottom: `1px solid ${COLORS.mediumGrey}` 
+  },
+  notifMarkRead: { 
+    background: 'none', 
+    border: 'none', 
+    color: COLORS.darkGrey, 
+    fontSize: '0.8rem', 
+    cursor: 'pointer' 
+  },
+  notifEmpty: { 
+    color: COLORS.darkGrey, 
+    textAlign: 'center', 
+    padding: '2rem' 
+  },
+  notifList: { 
+    display: 'flex', 
+    flexDirection: 'column', 
+    gap: '0.5rem' 
+  },
+  notifItem: { 
+    padding: '0.75rem', 
+    background: COLORS.lightGrey, 
+    borderRadius: '8px', 
+    display: 'flex', 
+    flexDirection: 'column', 
+    gap: '0.25rem', 
+    fontSize: '0.85rem' 
+  },
+  notifItemUnread: { 
+    padding: '0.75rem', 
+    background: COLORS.lightGrey, 
+    borderRadius: '8px', 
+    borderLeft: `3px solid ${COLORS.darkBlue}`, 
+    display: 'flex', 
+    flexDirection: 'column', 
+    gap: '0.25rem', 
+    fontSize: '0.85rem' 
+  },
+  notifTime: { 
+    fontSize: '0.7rem', 
+    color: COLORS.darkGrey 
+  },
 
   // Admin
-  adminView: { display: 'flex', flexDirection: 'column', gap: '1rem' },
-  adminTabs: { display: 'flex', gap: '0.375rem', flexWrap: 'wrap' },
-  adminTabBtn: { background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.2)', padding: '0.5rem 0.75rem', borderRadius: '10px', color: 'rgba(255,255,255,0.6)', fontSize: '0.75rem', cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.2s' },
-  adminTabActive: { background: 'linear-gradient(135deg, #8b5cf6, #6366f1)', border: '1px solid transparent', padding: '0.5rem 0.75rem', borderRadius: '10px', color: '#fff', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' },
-  adminSection: { background: 'rgba(139,92,246,0.05)', border: '1px solid rgba(139,92,246,0.15)', borderRadius: '16px', padding: '1rem' },
-  adminSectionTitle: { fontSize: '1rem', fontWeight: 600, marginBottom: '1rem' },
-  adminList: { display: 'flex', flexDirection: 'column', gap: '0.75rem' },
-  adminCard: { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(139,92,246,0.15)', borderRadius: '12px', padding: '1rem' },
-  adminCardHeader: { display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' },
-  adminCardAvatar: { fontSize: '2rem' },
-  adminCardEmoji: { fontSize: '2rem' },
-  adminCardType: { display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem' },
-  adminCardReward: { display: 'block', fontWeight: 600, color: '#c4b5fd' },
-  adminCardDesc: { color: 'rgba(255,255,255,0.7)', fontSize: '0.85rem', marginBottom: '0.75rem', padding: '0.5rem', background: 'rgba(139,92,246,0.1)', borderRadius: '8px' },
-  adminCardActions: { display: 'flex', gap: '0.5rem', flexWrap: 'wrap' },
-  approveBtn: { background: 'linear-gradient(135deg, #22c55e, #16a34a)', color: '#fff', border: 'none', padding: '0.5rem 1rem', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.8rem' },
-  rejectBtn: { background: 'rgba(239,68,68,0.2)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', padding: '0.5rem 1rem', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.8rem' },
-  hireBtn: { background: 'linear-gradient(135deg, #8b5cf6, #6366f1)', color: '#fff', border: 'none', padding: '0.5rem 1rem', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.8rem' },
-  shiftBtn: { background: 'rgba(255,255,255,0.1)', color: '#fff', border: 'none', padding: '0.5rem 0.75rem', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.8rem' },
-  awardBtn: { background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', border: 'none', padding: '0.5rem 1rem', borderRadius: '8px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.8rem' },
-  completedBadge: { background: 'rgba(34,197,94,0.15)', color: '#22c55e', padding: '0.5rem 1rem', borderRadius: '50px', fontSize: '0.75rem', fontWeight: 600 },
-  shiftsTracker: { marginBottom: '0.75rem' },
-  shiftsBar: { height: '6px', background: 'rgba(139,92,246,0.2)', borderRadius: '3px', marginTop: '0.5rem', overflow: 'hidden' },
-  shiftsFill: { height: '100%', background: 'linear-gradient(90deg, #22c55e, #16a34a)', borderRadius: '3px', transition: 'width 0.3s ease' },
-  pointsForm: { display: 'flex', flexDirection: 'column', gap: '0.75rem' },
-  select: { padding: '0.75rem', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: '10px', color: '#fff', fontFamily: 'inherit', fontSize: '0.9rem', outline: 'none' },
-  adminBtn: { background: 'linear-gradient(135deg, #8b5cf6, #6366f1)', color: '#fff', border: 'none', padding: '0.875rem', borderRadius: '10px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.9rem' },
+  adminContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '1rem'
+  },
+  adminTabs: { 
+    display: 'flex', 
+    gap: '0.25rem', 
+    flexWrap: 'wrap',
+    background: COLORS.white,
+    padding: '0.5rem',
+    borderRadius: '8px',
+    border: `1px solid ${COLORS.mediumGrey}`
+  },
+  adminTab: { 
+    background: 'transparent', 
+    border: 'none', 
+    padding: '0.5rem 0.75rem', 
+    borderRadius: '6px', 
+    color: COLORS.darkGrey, 
+    fontSize: '0.8rem', 
+    cursor: 'pointer', 
+    fontFamily: 'Poppins, sans-serif'
+  },
+  adminTabActive: { 
+    background: COLORS.darkBlue, 
+    border: 'none', 
+    padding: '0.5rem 0.75rem', 
+    borderRadius: '6px', 
+    color: COLORS.white, 
+    fontSize: '0.8rem', 
+    fontWeight: 600, 
+    cursor: 'pointer', 
+    fontFamily: 'Poppins, sans-serif' 
+  },
+  adminSection: { 
+    background: COLORS.white, 
+    border: `1px solid ${COLORS.mediumGrey}`, 
+    borderRadius: '12px', 
+    padding: '1rem' 
+  },
+  adminSectionHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '1rem'
+  },
+  adminSectionTitle: { 
+    fontFamily: 'DM Serif Display, serif',
+    fontSize: '1.1rem', 
+    fontWeight: 400, 
+    margin: 0
+  },
+  adminList: { 
+    display: 'flex', 
+    flexDirection: 'column', 
+    gap: '0.75rem' 
+  },
+  adminCard: { 
+    background: COLORS.lightGrey, 
+    borderRadius: '8px', 
+    padding: '1rem' 
+  },
+  adminCardHeader: { 
+    marginBottom: '0.5rem' 
+  },
+  adminCardMeta: { 
+    display: 'block', 
+    color: COLORS.darkGrey, 
+    fontSize: '0.8rem' 
+  },
+  adminCardDesc: { 
+    color: COLORS.darkGrey, 
+    fontSize: '0.9rem', 
+    marginBottom: '0.75rem' 
+  },
+  adminCardActions: { 
+    display: 'flex', 
+    gap: '0.5rem', 
+    flexWrap: 'wrap' 
+  },
+
+  // Buttons
+  primaryBtn: {
+    background: COLORS.darkBlue,
+    color: COLORS.white,
+    border: 'none',
+    padding: '0.75rem 1.5rem',
+    borderRadius: '8px',
+    fontWeight: 600,
+    cursor: 'pointer',
+    fontFamily: 'Poppins, sans-serif',
+    fontSize: '0.9rem'
+  },
+  secondaryBtn: {
+    background: COLORS.lightGrey,
+    color: COLORS.darkBlue,
+    border: 'none',
+    padding: '0.5rem 1rem',
+    borderRadius: '8px',
+    fontWeight: 500,
+    cursor: 'pointer',
+    fontFamily: 'Poppins, sans-serif',
+    fontSize: '0.85rem'
+  },
+  approveBtn: { 
+    background: COLORS.success, 
+    color: COLORS.white, 
+    border: 'none', 
+    padding: '0.5rem 1rem', 
+    borderRadius: '6px', 
+    fontWeight: 600, 
+    cursor: 'pointer', 
+    fontFamily: 'Poppins, sans-serif', 
+    fontSize: '0.8rem' 
+  },
+  rejectBtn: { 
+    background: COLORS.lightGrey, 
+    color: COLORS.error, 
+    border: 'none', 
+    padding: '0.5rem 1rem', 
+    borderRadius: '6px', 
+    fontWeight: 600, 
+    cursor: 'pointer', 
+    fontFamily: 'Poppins, sans-serif', 
+    fontSize: '0.8rem' 
+  },
+  addBtn: {
+    background: COLORS.darkBlue,
+    color: COLORS.white,
+    border: 'none',
+    padding: '0.5rem 1rem',
+    borderRadius: '6px',
+    fontWeight: 600,
+    cursor: 'pointer',
+    fontFamily: 'Poppins, sans-serif',
+    fontSize: '0.8rem'
+  },
+  editBtn: {
+    background: COLORS.lightGrey,
+    color: COLORS.darkBlue,
+    border: 'none',
+    padding: '0.4rem 0.75rem',
+    borderRadius: '6px',
+    fontSize: '0.75rem',
+    cursor: 'pointer',
+    fontFamily: 'Poppins, sans-serif'
+  },
+  deleteBtn: {
+    background: 'transparent',
+    color: COLORS.error,
+    border: 'none',
+    padding: '0.4rem 0.75rem',
+    borderRadius: '6px',
+    fontSize: '0.75rem',
+    cursor: 'pointer',
+    fontFamily: 'Poppins, sans-serif'
+  },
+  completedBadge: { 
+    background: 'rgba(34,197,94,0.1)', 
+    color: COLORS.success, 
+    padding: '0.4rem 0.75rem', 
+    borderRadius: '20px', 
+    fontSize: '0.8rem', 
+    fontWeight: 500 
+  },
+
+  // Shifts tracker
+  shiftsTracker: { 
+    marginBottom: '0.75rem' 
+  },
+  shiftsBar: { 
+    height: '6px', 
+    background: COLORS.mediumGrey, 
+    borderRadius: '3px', 
+    marginTop: '0.5rem', 
+    overflow: 'hidden' 
+  },
+  shiftsFill: { 
+    height: '100%', 
+    background: COLORS.success, 
+    borderRadius: '3px', 
+    transition: 'width 0.3s ease' 
+  },
+
+  // Form elements
+  formGroup: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.375rem',
+    flex: 1
+  },
+  formLabel: {
+    fontSize: '0.8rem',
+    fontWeight: 500,
+    color: COLORS.darkGrey
+  },
+  formRow: {
+    display: 'flex',
+    gap: '0.75rem'
+  },
+  formDivider: {
+    textAlign: 'center',
+    color: COLORS.darkGrey,
+    fontSize: '0.8rem',
+    margin: '0.5rem 0'
+  },
+  formActions: {
+    display: 'flex',
+    gap: '0.75rem',
+    marginTop: '1rem'
+  },
+  formHint: {
+    fontSize: '0.7rem',
+    color: COLORS.darkGrey,
+    marginTop: '0.25rem'
+  },
+  input: { 
+    padding: '0.75rem', 
+    background: COLORS.lightGrey, 
+    border: `1px solid ${COLORS.mediumGrey}`, 
+    borderRadius: '8px', 
+    color: COLORS.darkBlue, 
+    fontFamily: 'Poppins, sans-serif', 
+    fontSize: '0.9rem', 
+    outline: 'none' 
+  },
+  textarea: {
+    padding: '0.75rem',
+    background: COLORS.lightGrey,
+    border: `1px solid ${COLORS.mediumGrey}`,
+    borderRadius: '8px',
+    color: COLORS.darkBlue,
+    fontFamily: 'Poppins, sans-serif',
+    fontSize: '0.9rem',
+    outline: 'none',
+    resize: 'none'
+  },
+  select: { 
+    padding: '0.75rem', 
+    background: COLORS.lightGrey, 
+    border: `1px solid ${COLORS.mediumGrey}`, 
+    borderRadius: '8px', 
+    color: COLORS.darkBlue, 
+    fontFamily: 'Poppins, sans-serif', 
+    fontSize: '0.9rem', 
+    outline: 'none' 
+  },
+
+  // Product management
+  productFormCard: {
+    background: COLORS.lightGrey,
+    borderRadius: '12px',
+    padding: '1rem',
+    marginBottom: '1rem'
+  },
+  productFormTitle: {
+    fontFamily: 'DM Serif Display, serif',
+    fontSize: '1rem',
+    marginBottom: '1rem'
+  },
+  imagePreview: {
+    marginTop: '0.5rem',
+    borderRadius: '8px',
+    overflow: 'hidden',
+    maxHeight: '150px'
+  },
+  imagePreviewImg: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover'
+  },
+  productList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.5rem'
+  },
+  productListItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.75rem',
+    padding: '0.75rem',
+    background: COLORS.lightGrey,
+    borderRadius: '8px'
+  },
+  productListImage: {
+    width: '48px',
+    height: '48px',
+    borderRadius: '8px',
+    overflow: 'hidden',
+    flexShrink: 0
+  },
+  productListImg: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover'
+  },
+  productListPlaceholder: {
+    width: '100%',
+    height: '100%',
+    background: COLORS.mediumGrey,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: COLORS.darkGrey,
+    fontFamily: 'DM Serif Display, serif'
+  },
+  productListInfo: {
+    flex: 1,
+    minWidth: 0
+  },
+  productListMeta: {
+    display: 'block',
+    fontSize: '0.75rem',
+    color: COLORS.darkGrey
+  },
+  productListActions: {
+    display: 'flex',
+    gap: '0.5rem'
+  }
 };
 
-// Fonts & Animations
+// Fonts
 if (typeof document !== 'undefined') {
   const style = document.createElement('style');
   style.textContent = `
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-    @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.7; transform: scale(1.05); } }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes slideDown { from { opacity: 0; transform: translate(-50%, -20px); } to { opacity: 1; transform: translate(-50%, 0); } }
-    @keyframes bounce { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
-    @keyframes floatDown { 0% { transform: translateY(-10vh) rotate(0deg); } 100% { transform: translateY(110vh) rotate(360deg); } }
-    @keyframes confettiFall { 0% { opacity: 1; transform: translateY(0) rotate(0deg); } 100% { opacity: 0; transform: translateY(100px) rotate(720deg); } }
+    @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Poppins:wght@400;500;600;700&display=swap');
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.3); }
-    a:hover { transform: translateY(-2px); }
-    button:hover:not(:disabled) { transform: translateY(-1px); }
-    button:active:not(:disabled) { transform: translateY(0); }
-    select option { background: #1a0a2e; color: #fff; }
+    input::placeholder, textarea::placeholder { color: ${COLORS.darkGrey}; opacity: 0.7; }
+    button:hover:not(:disabled) { opacity: 0.9; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    a:hover { opacity: 0.8; }
   `;
   document.head.appendChild(style);
 }
