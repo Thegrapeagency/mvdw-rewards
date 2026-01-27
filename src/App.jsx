@@ -34,9 +34,9 @@ const COLORS = {
 // SOCIAL MEDIA LINKS
 // =====================================================
 const SOCIAL_LINKS = {
-  instagram: 'https://instagram.com/meisjesvanwijn',
+  instagram: 'https://instagram.com/meisjesvandewijn',
   linkedin: 'https://linkedin.com/company/meisjes-van-de-wijn',
-  tiktok: 'https://tiktok.com/@meisjesvanwijn',
+  tiktok: 'https://tiktok.com/@demeisjesvandewijn',
 };
 
 // =====================================================
@@ -46,8 +46,8 @@ const EARN_METHODS = [
   { 
     id: 'shift', 
     name: 'Dienst werken', 
-    points: 10, 
-    description: 'Per gewerkte dienst ontvang je 10 kurken',
+    points: 20, 
+    description: 'Per gewerkte dienst ontvang je 20 kurken',
     category: 'werk'
   },
   { 
@@ -96,7 +96,7 @@ const EARN_METHODS = [
     id: 'social-story', 
     name: 'Story delen', 
     points: 10, 
-    description: 'Deel een story met @meisjesvanwijn tag',
+    description: 'Deel een story met @meisjesvandewijn tag',
     category: 'social'
   },
   { 
@@ -216,12 +216,24 @@ function AppProvider({ children }) {
 // =====================================================
 function useProfiles() {
   const [profiles, setProfiles] = useState([]);
+  const [profileStats, setProfileStats] = useState({});
   const { supabase } = useApp();
 
   useEffect(() => {
     const fetch = async () => {
       const { data } = await supabase.from('profiles').select('*').order('points', { ascending: false });
       setProfiles(data || []);
+      
+      // Fetch total earned per user (sum of all positive activities)
+      const { data: activities } = await supabase.from('activities').select('user_id, points');
+      if (activities) {
+        const stats = {};
+        activities.forEach(a => {
+          if (!stats[a.user_id]) stats[a.user_id] = 0;
+          stats[a.user_id] += a.points || 0;
+        });
+        setProfileStats(stats);
+      }
     };
     fetch();
     
@@ -229,7 +241,7 @@ function useProfiles() {
     return () => sub.unsubscribe();
   }, []);
 
-  return { profiles };
+  return { profiles, profileStats };
 }
 
 function useRewards() {
@@ -776,7 +788,7 @@ function EarnSection({ onSubmitClaim, myClaims }) {
         <div style={styles.socialLinksGrid}>
           <a href={SOCIAL_LINKS.instagram} target="_blank" rel="noopener noreferrer" style={styles.socialLinkCard}>
             <span style={styles.socialLinkName}>Instagram</span>
-            <span style={styles.socialLinkHandle}>@meisjesvanwijn</span>
+            <span style={styles.socialLinkHandle}>@meisjesvandewijn</span>
           </a>
           <a href={SOCIAL_LINKS.linkedin} target="_blank" rel="noopener noreferrer" style={styles.socialLinkCard}>
             <span style={styles.socialLinkName}>LinkedIn</span>
@@ -784,7 +796,7 @@ function EarnSection({ onSubmitClaim, myClaims }) {
           </a>
           <a href={SOCIAL_LINKS.tiktok} target="_blank" rel="noopener noreferrer" style={styles.socialLinkCard}>
             <span style={styles.socialLinkName}>TikTok</span>
-            <span style={styles.socialLinkHandle}>@meisjesvanwijn</span>
+            <span style={styles.socialLinkHandle}>@demeisjesvandewijn</span>
           </a>
         </div>
       </div>
@@ -1061,6 +1073,7 @@ function AdminPanel({
           { id: 'referrals', label: `Referrals (${pendingReferrals.length})` },
           { id: 'points', label: 'Kurken Geven' },
           { id: 'products', label: 'Producten Beheren' },
+          { id: 'stats', label: 'Statistieken' },
         ].map(t => (
           <button 
             key={t.id} 
@@ -1404,6 +1417,70 @@ function AdminPanel({
           </div>
         </div>
       )}
+
+      {/* Statistics Tab */}
+      {tab === 'stats' && (
+        <div style={styles.adminSection}>
+          <h3 style={styles.adminSectionTitle}>Uitgegeven Beloningen</h3>
+          <p style={styles.sectionDesc}>Overzicht van alle goedgekeurde beloningen</p>
+          
+          <div style={styles.statsGrid}>
+            {rewards.map(reward => {
+              const approvedClaims = rewardClaims.filter(c => c.reward_id === reward.id && c.status === 'approved');
+              const pendingClaims = rewardClaims.filter(c => c.reward_id === reward.id && c.status === 'pending');
+              
+              return (
+                <div key={reward.id} style={styles.statsCard}>
+                  <div style={styles.statsCardHeader}>
+                    {reward.image_url ? (
+                      <img src={reward.image_url} alt={reward.name} style={styles.statsCardImg} />
+                    ) : (
+                      <div style={styles.statsCardPlaceholder}>{reward.name?.charAt(0)}</div>
+                    )}
+                    <div>
+                      <strong>{reward.name}</strong>
+                      <span style={styles.statsCardMeta}>{reward.points} kurken</span>
+                    </div>
+                  </div>
+                  <div style={styles.statsCardNumbers}>
+                    <div style={styles.statsNumber}>
+                      <span style={styles.statsNumberValue}>{approvedClaims.length}</span>
+                      <span style={styles.statsNumberLabel}>uitgegeven</span>
+                    </div>
+                    <div style={styles.statsNumber}>
+                      <span style={styles.statsNumberValuePending}>{pendingClaims.length}</span>
+                      <span style={styles.statsNumberLabel}>in aanvraag</span>
+                    </div>
+                    <div style={styles.statsNumber}>
+                      <span style={styles.statsNumberValue}>{approvedClaims.length * reward.points}</span>
+                      <span style={styles.statsNumberLabel}>kurken totaal</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Totalen */}
+          <div style={styles.statsTotals}>
+            <h4 style={styles.statsTotalsTitle}>Totalen</h4>
+            <div style={styles.statsTotalsGrid}>
+              <div style={styles.statsTotalItem}>
+                <span style={styles.statsTotalValue}>
+                  {rewardClaims.filter(c => c.status === 'approved').length}
+                </span>
+                <span style={styles.statsTotalLabel}>Beloningen uitgegeven</span>
+              </div>
+              <div style={styles.statsTotalItem}>
+                <span style={styles.statsTotalValue}>
+                  {rewardClaims.filter(c => c.status === 'approved').reduce((sum, c) => sum + (c.points_cost || 0), 0)}
+                </span>
+                <span style={styles.statsTotalLabel}>Kurken besteed</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1413,7 +1490,7 @@ function AdminPanel({
 // =====================================================
 function MainApp() {
   const { profile, signOut, refreshProfile } = useApp();
-  const { profiles } = useProfiles();
+  const { profiles, profileStats } = useProfiles();
   const { rewards, addReward, updateReward, deleteReward } = useRewards();
   const { activities } = useActivities(profile?.id);
   const { claims: socialClaims, submitClaim, approveClaim, rejectClaim } = useSocialClaims();
@@ -1741,15 +1818,17 @@ function MainApp() {
             {/* Leaderboard */}
             <div style={styles.section}>
               <h3 style={styles.sectionTitle}>Leaderboard</h3>
+              <p style={styles.sectionDesc}>Totaal verdiende kurken (inclusief uitgegeven)</p>
               <div style={styles.leaderboard}>
-                {[...profiles].sort((a, b) => b.points - a.points).map((p, i) => (
+                {[...profiles].sort((a, b) => (profileStats[b.id] || 0) - (profileStats[a.id] || 0)).map((p, i) => (
                   <div key={p.id} style={p.id === profile.id ? styles.leaderRowMe : styles.leaderRow}>
                     <span style={styles.leaderRank}>{i + 1}</span>
                     <div style={styles.leaderAvatar}>{p.name?.charAt(0) || '?'}</div>
                     <div style={styles.leaderInfo}>
                       <span style={styles.leaderName}>{p.name} {p.id === profile.id && '(jij)'}</span>
+                      <span style={styles.leaderSub}>Saldo: {p.points} kurken</span>
                     </div>
-                    <span style={styles.leaderPoints}>{p.points}</span>
+                    <span style={styles.leaderPoints}>{profileStats[p.id] || 0}</span>
                   </div>
                 ))}
               </div>
@@ -2958,6 +3037,12 @@ const styles = {
     fontWeight: 600, 
     fontSize: '0.9rem' 
   },
+  leaderSub: {
+    display: 'block',
+    fontSize: '0.75rem',
+    color: COLORS.darkGrey,
+    fontWeight: 400
+  },
   leaderPoints: { 
     fontWeight: 700 
   },
@@ -3352,6 +3437,105 @@ const styles = {
   productListActions: {
     display: 'flex',
     gap: '0.5rem'
+  },
+
+  // Statistics
+  statsGrid: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.75rem',
+    marginBottom: '1.5rem'
+  },
+  statsCard: {
+    background: COLORS.lightGrey,
+    borderRadius: '12px',
+    padding: '1rem'
+  },
+  statsCardHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.75rem',
+    marginBottom: '0.75rem'
+  },
+  statsCardImg: {
+    width: '48px',
+    height: '48px',
+    borderRadius: '8px',
+    objectFit: 'cover'
+  },
+  statsCardPlaceholder: {
+    width: '48px',
+    height: '48px',
+    background: COLORS.mediumGrey,
+    borderRadius: '8px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: COLORS.darkGrey,
+    fontFamily: 'DM Serif Display, serif'
+  },
+  statsCardMeta: {
+    display: 'block',
+    fontSize: '0.8rem',
+    color: COLORS.darkGrey
+  },
+  statsCardNumbers: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, 1fr)',
+    gap: '0.5rem'
+  },
+  statsNumber: {
+    textAlign: 'center',
+    padding: '0.5rem',
+    background: COLORS.white,
+    borderRadius: '8px'
+  },
+  statsNumberValue: {
+    display: 'block',
+    fontSize: '1.25rem',
+    fontWeight: 700,
+    color: COLORS.darkBlue,
+    fontFamily: 'DM Serif Display, serif'
+  },
+  statsNumberValuePending: {
+    display: 'block',
+    fontSize: '1.25rem',
+    fontWeight: 700,
+    color: COLORS.warning,
+    fontFamily: 'DM Serif Display, serif'
+  },
+  statsNumberLabel: {
+    fontSize: '0.65rem',
+    color: COLORS.darkGrey
+  },
+  statsTotals: {
+    background: COLORS.darkBlue,
+    borderRadius: '12px',
+    padding: '1rem',
+    color: COLORS.white
+  },
+  statsTotalsTitle: {
+    fontFamily: 'DM Serif Display, serif',
+    fontSize: '1rem',
+    marginBottom: '0.75rem'
+  },
+  statsTotalsGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, 1fr)',
+    gap: '1rem'
+  },
+  statsTotalItem: {
+    textAlign: 'center'
+  },
+  statsTotalValue: {
+    display: 'block',
+    fontSize: '2rem',
+    fontWeight: 700,
+    fontFamily: 'DM Serif Display, serif'
+  },
+  statsTotalLabel: {
+    fontSize: '0.75rem',
+    opacity: 0.8
   }
 };
 
