@@ -47,28 +47,28 @@ const EARN_METHODS = [
     id: 'shift', 
     name: 'Dienst werken', 
     points: 10, 
-    description: 'Per gewerkte dienst ontvang je 10 druifjes',
+    description: 'Per gewerkte dienst ontvang je 10 kurken',
     category: 'werk'
   },
   { 
     id: 'lastminute', 
     name: 'Last-minute dienst', 
     points: 25, 
-    description: 'Spring je last-minute in? Dan krijg je 25 druifjes extra!',
+    description: 'Spring je last-minute in? Dan krijg je 25 kurken extra!',
     category: 'werk'
   },
   { 
     id: 'training-attend', 
     name: 'Training bijwonen', 
     points: 15, 
-    description: 'Volg een training en ontvang 15 druifjes',
+    description: 'Volg een training en ontvang 15 kurken',
     category: 'ontwikkeling'
   },
   { 
     id: 'training-give', 
     name: 'Training geven', 
     points: 50, 
-    description: 'Geef je zelf een training? 50 druifjes!',
+    description: 'Geef je zelf een training? 50 kurken!',
     category: 'ontwikkeling'
   },
   { 
@@ -117,23 +117,26 @@ const EARN_METHODS = [
 ];
 
 // =====================================================
-// LOGO COMPONENT (SVG)
+// LOGO URLS
 // =====================================================
-function MvdWLogo({ size = 60, color = COLORS.white }) {
+const LOGO_BEELDMERK = 'https://i.imgur.com/UROTKyl.png';
+const LOGO_WOORDMERK = 'https://i.imgur.com/Fclvpag.png';
+
+// =====================================================
+// LOGO COMPONENT
+// =====================================================
+function MvdWLogo({ size = 60, variant = 'beeldmerk' }) {
+  const src = variant === 'woordmerk' ? LOGO_WOORDMERK : LOGO_BEELDMERK;
   return (
-    <svg width={size} height={size} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="50" cy="50" r="48" stroke={color} strokeWidth="2" fill="none"/>
-      <path d="M50 8 C52 8, 54 10, 54 12 C54 14, 52 16, 50 16 C48 16, 46 14, 46 12 C46 10, 48 8, 50 8" fill={color}/>
-      {[...Array(12)].map((_, i) => {
-        const angle = (i * 30 - 90) * Math.PI / 180;
-        const x = 50 + 42 * Math.cos(angle);
-        const y = 50 + 42 * Math.sin(angle);
-        return <circle key={i} cx={x} cy={y} r="4" fill={color}/>;
-      })}
-      <text x="50" y="45" textAnchor="middle" fill={color} fontSize="18" fontFamily="DM Serif Display" fontWeight="bold">MVDW</text>
-      <text x="50" y="58" textAnchor="middle" fill={color} fontSize="6" fontFamily="Poppins" letterSpacing="1">MEISJES</text>
-      <text x="50" y="66" textAnchor="middle" fill={color} fontSize="6" fontFamily="Poppins" letterSpacing="1">VAN DE WIJN</text>
-    </svg>
+    <img 
+      src={src} 
+      alt="Meisjes van de Wijn" 
+      style={{ 
+        width: size, 
+        height: variant === 'woordmerk' ? 'auto' : size,
+        objectFit: 'contain'
+      }} 
+    />
   );
 }
 
@@ -342,7 +345,7 @@ function useSocialClaims() {
     await supabase.from('notifications').insert({
       user_id: claim.user_id,
       type: 'points',
-      title: `+${points} druifjes goedgekeurd!`,
+      title: `+${points} kurken goedgekeurd!`,
       message: claim.description
     });
 
@@ -395,7 +398,7 @@ function useRewardClaims() {
         user_id: profile.id,
         type: 'claim',
         title: 'Claim ingediend!',
-        message: `Je hebt ${rewardName} aangevraagd voor ${pointsCost} druifjes`
+        message: `Je hebt ${rewardName} aangevraagd voor ${pointsCost} kurken`
       });
     }
     
@@ -479,7 +482,7 @@ function useReferrals() {
     await supabase.from('notifications').insert({
       user_id: referral.referrer_id,
       type: 'points',
-      title: '+100 druifjes!',
+      title: '+100 kurken!',
       message: `Referral ${referral.colleague_name} voltooid!`
     });
 
@@ -532,7 +535,7 @@ function useRecognitions() {
       user_id: toUserId,
       type: 'recognition',
       title: 'Je bent gewaardeerd!',
-      message: `${profile.name} heeft je 20 druifjes gegeven`
+      message: `${profile.name} heeft je 20 kurken gegeven`
     });
 
     return true;
@@ -590,7 +593,7 @@ function useAdminPoints() {
     await supabase.from('notifications').insert({
       user_id: userId,
       type: 'points',
-      title: `+${points} druifjes!`,
+      title: `+${points} kurken!`,
       message: actionName
     });
 
@@ -630,10 +633,10 @@ function AuthScreen() {
       <div style={styles.authContainer}>
         <div style={styles.authHeader}>
           <div style={styles.authLogoWrap}>
-            <MvdWLogo size={80} color={COLORS.white} />
+            <MvdWLogo size={80} />
           </div>
           <h1 style={styles.authTitle}>Rewards</h1>
-          <p style={styles.authSubtitle}>Spaar druifjes, kies beloningen</p>
+          <p style={styles.authSubtitle}>Spaar kurken, kies beloningen</p>
         </div>
 
         <div style={styles.authCard}>
@@ -705,7 +708,7 @@ function EarnSection({ onSubmitClaim, myClaims }) {
         <div>
           <strong>Hoe werkt het?</strong>
           <p style={styles.infoBannerText}>
-            Wij kennen eens per maand de druifjes toe op basis van je gewerkte diensten, trainingen en andere activiteiten. 
+            Wij kennen eens per maand de kurken toe op basis van je gewerkte diensten, trainingen en andere activiteiten. 
             Social media claims kun je zelf indienen - wij controleren en keuren goed.
           </p>
         </div>
@@ -819,12 +822,12 @@ function Shop({ rewards, profile, claims, onClaim }) {
       <div style={styles.shopHeader}>
         <div>
           <h2 style={styles.pageTitle}>Shop</h2>
-          <p style={styles.pageSubtitle}>Wissel je druifjes in voor beloningen</p>
+          <p style={styles.pageSubtitle}>Wissel je kurken in voor beloningen</p>
         </div>
         <div style={styles.shopBalance}>
           <span style={styles.shopBalanceLabel}>Jouw saldo</span>
           <span style={styles.shopBalanceValue}>{profile.points}</span>
-          <span style={styles.shopBalanceUnit}>druifjes</span>
+          <span style={styles.shopBalanceUnit}>kurken</span>
         </div>
       </div>
 
@@ -864,7 +867,7 @@ function Shop({ rewards, profile, claims, onClaim }) {
                 <div style={styles.productFooter}>
                   <div style={styles.productPrice}>
                     <span style={styles.priceValue}>{reward.points}</span>
-                    <span style={styles.priceUnit}>druifjes</span>
+                    <span style={styles.priceUnit}>kurken</span>
                   </div>
 
                   {pending ? (
@@ -921,17 +924,17 @@ function Shop({ rewards, profile, claims, onClaim }) {
                 <div style={styles.modalPriceBox}>
                   <div style={styles.modalPriceRow}>
                     <span>Kosten</span>
-                    <span style={styles.modalPriceValue}>{selectedReward.points} druifjes</span>
+                    <span style={styles.modalPriceValue}>{selectedReward.points} kurken</span>
                   </div>
                   <div style={styles.modalPriceRow}>
                     <span>Jouw saldo</span>
-                    <span>{profile.points} druifjes</span>
+                    <span>{profile.points} kurken</span>
                   </div>
                   <div style={styles.modalDivider} />
                   <div style={styles.modalPriceRow}>
                     <span>Na claim</span>
                     <span style={{ color: COLORS.success, fontWeight: 700 }}>
-                      {profile.points - selectedReward.points} druifjes
+                      {profile.points - selectedReward.points} kurken
                     </span>
                   </div>
                 </div>
@@ -1056,7 +1059,7 @@ function AdminPanel({
           { id: 'social', label: `Social Claims (${pendingSocial.length})` },
           { id: 'rewards', label: `Shop Claims (${pendingRewards.length})` },
           { id: 'referrals', label: `Referrals (${pendingReferrals.length})` },
-          { id: 'points', label: 'Druifjes Geven' },
+          { id: 'points', label: 'Kurken Geven' },
           { id: 'products', label: 'Producten Beheren' },
         ].map(t => (
           <button 
@@ -1087,7 +1090,7 @@ function AdminPanel({
                   <div key={c.id} style={styles.adminCard}>
                     <div style={styles.adminCardHeader}>
                       <strong>{c.user?.name}</strong>
-                      <span style={styles.adminCardMeta}>{type} · +{points} druifjes</span>
+                      <span style={styles.adminCardMeta}>{type} · +{points} kurken</span>
                     </div>
                     <p style={styles.adminCardDesc}>{desc}</p>
                     <div style={styles.adminCardActions}>
@@ -1122,7 +1125,7 @@ function AdminPanel({
                       <strong>{c.user?.name}</strong>
                       <span style={styles.adminCardMeta}>wil {reward?.name || 'onbekend'}</span>
                     </div>
-                    <p style={styles.adminCardDesc}>{c.points_cost} druifjes</p>
+                    <p style={styles.adminCardDesc}>{c.points_cost} kurken</p>
                     <div style={styles.adminCardActions}>
                       <button onClick={() => onApproveReward(c, reward?.name)} style={styles.approveBtn}>
                         Leveren
@@ -1197,7 +1200,7 @@ function AdminPanel({
       {/* Points Tab */}
       {tab === 'points' && (
         <div style={styles.adminSection}>
-          <h3 style={styles.adminSectionTitle}>Druifjes Toekennen</h3>
+          <h3 style={styles.adminSectionTitle}>Kurken Toekennen</h3>
           
           <div style={styles.formGroup}>
             <label style={styles.formLabel}>Teamlid</label>
@@ -1208,7 +1211,7 @@ function AdminPanel({
             >
               <option value="">Selecteer teamlid...</option>
               {profiles.map(p => (
-                <option key={p.id} value={p.id}>{p.name} ({p.points} druifjes)</option>
+                <option key={p.id} value={p.id}>{p.name} ({p.points} kurken)</option>
               ))}
             </select>
           </div>
@@ -1243,7 +1246,7 @@ function AdminPanel({
               />
             </div>
             <div style={{...styles.formGroup, maxWidth: '120px'}}>
-              <label style={styles.formLabel}>Druifjes</label>
+              <label style={styles.formLabel}>Kurken</label>
               <input 
                 type="number" 
                 value={customPoints} 
@@ -1308,7 +1311,7 @@ function AdminPanel({
 
               <div style={styles.formRow}>
                 <div style={styles.formGroup}>
-                  <label style={styles.formLabel}>Prijs (druifjes)</label>
+                  <label style={styles.formLabel}>Prijs (kurken)</label>
                   <input 
                     type="number" 
                     value={productForm.points}
@@ -1384,7 +1387,7 @@ function AdminPanel({
                   <div style={styles.productListInfo}>
                     <strong>{product.name}</strong>
                     <span style={styles.productListMeta}>
-                      {product.points} druifjes · {product.category || 'Geen categorie'}
+                      {product.points} kurken · {product.category || 'Geen categorie'}
                     </span>
                   </div>
                   <div style={styles.productListActions}>
@@ -1452,7 +1455,7 @@ function MainApp() {
 
   const handleApproveSocial = async (claim, points) => {
     await approveClaim(claim.id, points);
-    notify(`Goedgekeurd! +${points} druifjes voor ${claim.user?.name}`);
+    notify(`Goedgekeurd! +${points} kurken voor ${claim.user?.name}`);
     refreshProfile();
   };
 
@@ -1486,7 +1489,7 @@ function MainApp() {
   const handleAddPoints = async (userId, actionName, points) => {
     await addPoints(userId, actionName, points);
     const user = profiles.find(p => p.id === userId);
-    notify(`+${points} druifjes voor ${user?.name}`);
+    notify(`+${points} kurken voor ${user?.name}`);
     refreshProfile();
   };
 
@@ -1532,13 +1535,13 @@ function MainApp() {
       {/* Header */}
       <header style={styles.header}>
         <div style={styles.headerLeft}>
-          <MvdWLogo size={36} color={COLORS.white} />
+          <MvdWLogo size={36} />
           <span style={styles.headerTitle}>Rewards</span>
         </div>
         <div style={styles.headerRight}>
           <div style={styles.headerPoints}>
             <span style={styles.headerPointsValue}>{profile.points}</span>
-            <span style={styles.headerPointsLabel}>druifjes</span>
+            <span style={styles.headerPointsLabel}>kurken</span>
           </div>
           <button onClick={() => { setShowNotifications(true); markRead(); }} style={styles.headerBtn}>
             <span style={styles.headerBtnIcon}>●</span>
@@ -1589,7 +1592,7 @@ function MainApp() {
                 <span style={styles.heroGreeting}>Welkom, {profile.name}</span>
                 <div style={styles.heroPointsRow}>
                   <span style={styles.heroPoints}>{profile.points}</span>
-                  <span style={styles.heroLabel}>druifjes</span>
+                  <span style={styles.heroLabel}>kurken</span>
                 </div>
               </div>
             </div>
@@ -1670,7 +1673,7 @@ function MainApp() {
             <div style={styles.recognitionCard}>
               <h3 style={styles.recognitionTitle}>Waardeer een collega</h3>
               <p style={styles.recognitionDesc}>
-                Geef +20 druifjes aan iemand die het verdient (1x per maand)
+                Geef +20 kurken aan iemand die het verdient (1x per maand)
               </p>
               <span style={canGive() ? styles.canRecognize : styles.cantRecognize}>
                 {canGive() ? 'Je kunt nog waarderen' : 'Al gewaardeerd deze maand'}
@@ -1682,7 +1685,7 @@ function MainApp() {
                 <div key={p.id} style={styles.colleagueCard}>
                   <div style={styles.colleagueAvatar}>{p.name?.charAt(0) || '?'}</div>
                   <h4 style={styles.colleagueName}>{p.name}</h4>
-                  <span style={styles.colleaguePoints}>{p.points} druifjes</span>
+                  <span style={styles.colleaguePoints}>{p.points} kurken</span>
                   <button 
                     onClick={() => handleGiveRecognition(p.id, p.name)}
                     disabled={!canGive()}
@@ -1698,7 +1701,7 @@ function MainApp() {
             <div style={styles.referralSection}>
               <h3 style={styles.sectionTitle}>Collega aandragen</h3>
               <p style={styles.sectionDesc}>
-                Draag een nieuwe collega aan en verdien 100 druifjes als zij 3 shifts hebben gewerkt!
+                Draag een nieuwe collega aan en verdien 100 kurken als zij 3 shifts hebben gewerkt!
               </p>
               
               <div style={styles.referralForm}>
@@ -1727,7 +1730,7 @@ function MainApp() {
                       <span style={styles.referralStatus}>
                         {r.status === 'submitted' && 'Aangemeld'}
                         {r.status === 'active' && `${r.shifts_worked || 0}/${r.shifts_required || 3} shifts`}
-                        {r.status === 'completed' && 'Voltooid! +100 druifjes'}
+                        {r.status === 'completed' && 'Voltooid! +100 kurken'}
                       </span>
                     </div>
                   ))}
@@ -1797,7 +1800,7 @@ function AppContent() {
   if (loading) {
     return (
       <div style={styles.loadingScreen}>
-        <MvdWLogo size={80} color={COLORS.white} />
+        <MvdWLogo size={80} />
         <span style={styles.loadingText}>Laden...</span>
       </div>
     );
