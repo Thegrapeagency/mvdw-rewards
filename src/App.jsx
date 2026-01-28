@@ -1258,6 +1258,7 @@ function AdminPanel({
   const [selectedAction, setSelectedAction] = useState('');
   const [customPoints, setCustomPoints] = useState('');
   const [customAction, setCustomAction] = useState('');
+  const [eventDescription, setEventDescription] = useState('');
   
   // History filter
   const [historyUser, setHistoryUser] = useState('');
@@ -1319,12 +1320,18 @@ function AdminPanel({
       actionName = method.name;
     }
     
+    // Voeg event omschrijving toe als die is ingevuld
+    if (eventDescription.trim()) {
+      actionName = `${actionName} - ${eventDescription.trim()}`;
+    }
+    
     const user = profiles.find(p => p.id === selectedUser);
     await onAddPoints(selectedUser, actionName, points);
     setSelectedUser('');
     setSelectedAction('');
     setCustomPoints('');
     setCustomAction('');
+    setEventDescription('');
     refreshProfile();
   };
 
@@ -1561,13 +1568,25 @@ function AdminPanel({
             </select>
           </div>
 
+          <div style={styles.formGroup}>
+            <label style={styles.formLabel}>Event / dienst omschrijving</label>
+            <input 
+              type="text" 
+              value={eventDescription} 
+              onChange={e => setEventDescription(e.target.value)}
+              placeholder="Bijv. Bruiloft Van Dijk, Pukkelpop dag 2"
+              style={styles.input}
+            />
+            <span style={styles.formHint}>Optioneel: voeg toe waarvoor de punten zijn</span>
+          </div>
+
           <div style={styles.formDivider}>
-            <span>of aangepast</span>
+            <span>of volledig aangepast</span>
           </div>
 
           <div style={styles.formRow}>
             <div style={styles.formGroup}>
-              <label style={styles.formLabel}>Omschrijving</label>
+              <label style={styles.formLabel}>Eigen omschrijving</label>
               <input 
                 type="text" 
                 value={customAction} 
@@ -3143,11 +3162,12 @@ const styles = {
     flexDirection: 'column'
   },
   productImageWrap: {
-    height: '120px',
+    aspectRatio: '1/1',
     background: COLORS.lightGrey,
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    overflow: 'hidden'
   },
   productImage: {
     width: '100%',
