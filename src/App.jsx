@@ -1,6 +1,6 @@
 // =====================================================
 // MEISJES VAN DE WIJN - REWARDS SYSTEEM
-// VERSIE 4 - MvdW Huisstijl
+// VERSIE 5 - Met Streaks, Badges, Team Goals
 // =====================================================
 
 import React, { useState, useEffect, createContext, useContext } from 'react';
@@ -12,6 +12,26 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = 'https://chhpryjlxbwgzjlswhch.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNoaHByeWpseGJ3Z3pqbHN3aGNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk0MjE4NjYsImV4cCI6MjA4NDk5Nzg2Nn0.7QAgMuTLCGUfAq-N4ha0N1zvKVN-If286JvAA3Jc_9Q';
 const supabase = createClient(supabaseUrl, supabaseKey);
+
+// =====================================================
+// BADGES DEFINITIES
+// =====================================================
+const BADGE_DEFINITIONS = {
+  'first-shift': { name: 'Eerste Dienst', description: 'Je eerste dienst gewerkt!', icon: '1', color: '#22c55e' },
+  'shifts-10': { name: '10 Diensten', description: '10 diensten gewerkt', icon: '10', color: '#3b82f6' },
+  'shifts-25': { name: '25 Diensten', description: '25 diensten gewerkt', icon: '25', color: '#8b5cf6' },
+  'shifts-50': { name: '50 Diensten', description: '50 diensten gewerkt', icon: '50', color: '#c9a962' },
+  'shifts-100': { name: 'Centurion', description: '100 diensten gewerkt!', icon: '100', color: '#ef4444' },
+  'streak-3': { name: 'Op Dreef', description: '3 weken achter elkaar gewerkt', icon: 'S3', color: '#f59e0b' },
+  'streak-5': { name: 'Doorzetter', description: '5 weken achter elkaar gewerkt', icon: 'S5', color: '#f97316' },
+  'streak-10': { name: 'Onmisbaar', description: '10 weken achter elkaar gewerkt', icon: 'S10', color: '#ef4444' },
+  'social-star': { name: 'Social Star', description: '10 social media posts gedeeld', icon: 'SS', color: '#ec4899' },
+  'referral-king': { name: 'Netwerker', description: '3 collega\'s aangedragen', icon: 'RK', color: '#14b8a6' },
+  'first-claim': { name: 'Eerste Beloning', description: 'Je eerste beloning geclaimed', icon: 'B1', color: '#6366f1' },
+  'big-spender': { name: 'Big Spender', description: '1000+ kurken uitgegeven', icon: 'BS', color: '#c9a962' },
+  'birthday': { name: 'Jarig!', description: 'Verjaardagsbonus ontvangen', icon: 'VJ', color: '#f43f5e' },
+  'trainer': { name: 'Trainer', description: 'Een training gegeven', icon: 'TR', color: '#0ea5e9' },
+};
 
 // =====================================================
 // KLEUREN - MvdW Huisstijl
@@ -141,6 +161,51 @@ function MvdWLogo({ size = 60, variant = 'beeldmerk' }) {
 }
 
 // =====================================================
+// AVATAR COMPONENT
+// =====================================================
+function Avatar({ name, url, size = 40 }) {
+  if (url) {
+    return (
+      <img 
+        src={url} 
+        alt={name} 
+        style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover' }}
+      />
+    );
+  }
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: '50%',
+      background: COLORS.darkBlue, color: COLORS.white,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontSize: size * 0.4, fontFamily: 'DM Serif Display, serif'
+    }}>
+      {name?.charAt(0) || '?'}
+    </div>
+  );
+}
+
+// =====================================================
+// BADGE COMPONENT
+// =====================================================
+function Badge({ type, size = 'medium', showName = true }) {
+  const badge = BADGE_DEFINITIONS[type];
+  if (!badge) return null;
+  const sizes = { small: { badge: 32, font: 10, nameFont: 9 }, medium: { badge: 48, font: 14, nameFont: 11 }, large: { badge: 64, font: 18, nameFont: 13 } };
+  const s = sizes[size];
+  return (
+    <div style={{ textAlign: 'center' }}>
+      <div style={{
+        width: s.badge, height: s.badge, borderRadius: '50%', background: badge.color, color: COLORS.white,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: s.font, fontWeight: 700, fontFamily: 'Poppins, sans-serif', boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+      }}>{badge.icon}</div>
+      {showName && <span style={{ display: 'block', fontSize: s.nameFont, color: COLORS.darkGrey, marginTop: 4 }}>{badge.name}</span>}
+    </div>
+  );
+}
+
+// =====================================================
 // CONTEXT
 // =====================================================
 const AppContext = createContext();
@@ -189,6 +254,12 @@ function AppProvider({ children }) {
 
   const refreshProfile = () => session?.user && fetchProfile(session.user.id);
 
+  const updateProfile = async (updates) => {
+    const { error } = await supabase.from('profiles').update(updates).eq('id', profile.id);
+    if (!error) refreshProfile();
+    return !error;
+  };
+
   const signIn = async (email, password) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
@@ -205,7 +276,7 @@ function AppProvider({ children }) {
   const signOut = () => supabase.auth.signOut();
 
   return (
-    <AppContext.Provider value={{ session, profile, loading, error, supabase, signIn, signUp, signOut, refreshProfile }}>
+    <AppContext.Provider value={{ session, profile, loading, error, supabase, signIn, signUp, signOut, refreshProfile, updateProfile }}>
       {children}
     </AppContext.Provider>
   );
@@ -242,6 +313,34 @@ function useProfiles() {
   }, []);
 
   return { profiles, profileStats };
+}
+
+function useBadges(userId) {
+  const [badges, setBadges] = useState([]);
+  const { supabase } = useApp();
+  useEffect(() => {
+    if (!userId) return;
+    const fetch = async () => {
+      const { data } = await supabase.from('badges').select('*').eq('user_id', userId).order('earned_at', { ascending: false });
+      setBadges(data || []);
+    };
+    fetch();
+  }, [userId]);
+  return { badges };
+}
+
+function useTeamGoals() {
+  const [goals, setGoals] = useState([]);
+  const { supabase } = useApp();
+  const fetch = async () => {
+    const { data } = await supabase.from('team_goals').select('*').eq('is_active', true).order('created_at', { ascending: false });
+    setGoals(data || []);
+  };
+  useEffect(() => { fetch(); }, []);
+  const createGoal = async (goal) => { await supabase.from('team_goals').insert(goal); fetch(); };
+  const updateGoal = async (id, updates) => { await supabase.from('team_goals').update(updates).eq('id', id); fetch(); };
+  const deleteGoal = async (id) => { await supabase.from('team_goals').delete().eq('id', id); fetch(); };
+  return { goals, createGoal, updateGoal, deleteGoal };
 }
 
 function useRewards() {
@@ -612,7 +711,103 @@ function useAdminPoints() {
     return true;
   };
 
-  return { addPoints };
+  const addBulkPoints = async (userIds, actionName, points) => {
+    const activities = userIds.map(userId => ({ user_id: userId, action_name: actionName, points, source: 'admin', added_by: profile.id }));
+    const notifications = userIds.map(userId => ({ user_id: userId, type: 'points', title: `+${points} kurken!`, message: actionName }));
+    await supabase.from('activities').insert(activities);
+    await supabase.from('notifications').insert(notifications);
+    return true;
+  };
+
+  const awardBadge = async (userId, badgeType) => {
+    const { error } = await supabase.from('badges').insert({ user_id: userId, badge_type: badgeType });
+    if (!error) {
+      const badge = BADGE_DEFINITIONS[badgeType];
+      await supabase.from('notifications').insert({ user_id: userId, type: 'badge', title: 'Nieuwe badge!', message: `Je hebt de "${badge?.name}" badge verdiend!` });
+    }
+    return !error;
+  };
+
+  const giveBirthdayBonus = async (userId, userName) => {
+    await addPoints(userId, 'Verjaardagsbonus - Gefeliciteerd!', 50, false);
+    await awardBadge(userId, 'birthday');
+    return true;
+  };
+
+  return { addPoints, addBulkPoints, awardBadge, giveBirthdayBonus };
+}
+
+// =====================================================
+// PROFILE EDIT MODAL
+// =====================================================
+function ProfileEditModal({ profile, onClose, onSave }) {
+  const [name, setName] = useState(profile.name || '');
+  const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url || '');
+  const [birthday, setBirthday] = useState(profile.birthday || '');
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    setSaving(true);
+    await onSave({ name, avatar_url: avatarUrl, birthday: birthday || null });
+    setSaving(false);
+    onClose();
+  };
+
+  return (
+    <div style={styles.modalOverlay} onClick={onClose}>
+      <div style={styles.modal} onClick={e => e.stopPropagation()}>
+        <h3 style={styles.modalTitle}>Profiel bewerken</h3>
+        <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+          <Avatar name={name} url={avatarUrl} size={80} />
+        </div>
+        <div style={styles.formGroup}>
+          <label style={styles.formLabel}>Naam</label>
+          <input type="text" value={name} onChange={e => setName(e.target.value)} style={styles.input} />
+        </div>
+        <div style={styles.formGroup}>
+          <label style={styles.formLabel}>Profielfoto URL</label>
+          <input type="text" value={avatarUrl} onChange={e => setAvatarUrl(e.target.value)} placeholder="https://..." style={styles.input} />
+          <span style={styles.formHint}>Tip: Upload een foto naar imgur.com en plak de link hier</span>
+        </div>
+        <div style={styles.formGroup}>
+          <label style={styles.formLabel}>Verjaardag</label>
+          <input type="date" value={birthday} onChange={e => setBirthday(e.target.value)} style={styles.input} />
+          <span style={styles.formHint}>Je krijgt 50 kurken op je verjaardag!</span>
+        </div>
+        <div style={styles.modalActions}>
+          <button onClick={onClose} style={styles.modalCancel}>Annuleren</button>
+          <button onClick={handleSave} disabled={saving} style={styles.modalConfirm}>{saving ? 'Opslaan...' : 'Opslaan'}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// =====================================================
+// TEAM GOAL CARD
+// =====================================================
+function TeamGoalCard({ goal }) {
+  const progress = Math.min(100, ((goal.current_points || 0) / goal.target_points) * 100);
+  return (
+    <div style={{ background: COLORS.lightGrey, borderRadius: '12px', padding: '1rem', marginBottom: '0.75rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+        <h4 style={{ fontFamily: 'DM Serif Display, serif', fontSize: '1rem', margin: 0 }}>{goal.name}</h4>
+        {goal.is_completed && <span style={styles.completedBadge}>Behaald!</span>}
+      </div>
+      {goal.description && <p style={{ color: COLORS.darkGrey, fontSize: '0.85rem', margin: '0 0 0.75rem' }}>{goal.description}</p>}
+      <div style={{ marginBottom: '0.75rem' }}>
+        <div style={{ height: '8px', background: COLORS.mediumGrey, borderRadius: '4px', overflow: 'hidden' }}>
+          <div style={{ height: '100%', background: COLORS.success, borderRadius: '4px', width: `${progress}%`, transition: 'width 0.5s ease' }} />
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: COLORS.darkGrey, marginTop: '0.5rem' }}>
+          <span>{goal.current_points || 0} / {goal.target_points} kurken</span>
+          <span>{Math.round(progress)}%</span>
+        </div>
+      </div>
+      {goal.reward_description && <div style={{ fontSize: '0.85rem', padding: '0.5rem', background: COLORS.white, borderRadius: '8px', marginBottom: '0.5rem' }}><strong>Beloning:</strong> {goal.reward_description}</div>}
+      {goal.deadline && <div style={{ fontSize: '0.75rem', color: COLORS.darkGrey }}>Deadline: {new Date(goal.deadline).toLocaleDateString('nl-NL')}</div>}
+    </div>
+  );
 }
 
 // =====================================================
@@ -977,6 +1172,7 @@ function AdminPanel({
   rewardClaims, 
   referrals, 
   rewards,
+  goals,
   onApproveSocial, 
   onRejectSocial, 
   onApproveReward,
@@ -984,9 +1180,14 @@ function AdminPanel({
   onUpdateReferral,
   onCompleteReferral,
   onAddPoints,
+  onAddBulkPoints,
   onAddReward,
   onUpdateReward,
   onDeleteReward,
+  onCreateGoal,
+  onUpdateGoal,
+  onDeleteGoal,
+  onGiveBirthdayBonus,
   refreshProfile
 }) {
   const [tab, setTab] = useState('social');
@@ -994,6 +1195,15 @@ function AdminPanel({
   const [selectedAction, setSelectedAction] = useState('');
   const [customPoints, setCustomPoints] = useState('');
   const [customAction, setCustomAction] = useState('');
+  
+  // Bulk points
+  const [bulkUsers, setBulkUsers] = useState([]);
+  const [bulkAction, setBulkAction] = useState('');
+  const [bulkPoints, setBulkPoints] = useState('');
+  
+  // Goal form
+  const [showGoalForm, setShowGoalForm] = useState(false);
+  const [goalForm, setGoalForm] = useState({ name: '', description: '', target_points: '', reward_description: '', deadline: '' });
   
   // Product form
   const [showProductForm, setShowProductForm] = useState(false);
@@ -1005,6 +1215,30 @@ function AdminPanel({
   const pendingSocial = socialClaims.filter(c => c.status === 'pending');
   const pendingRewards = rewardClaims.filter(c => c.status === 'pending');
   const pendingReferrals = referrals.filter(r => r.status !== 'completed' && r.status !== 'rejected');
+  
+  // Birthday check
+  const todayBirthdays = profiles.filter(p => {
+    if (!p.birthday) return false;
+    const today = new Date();
+    const bday = new Date(p.birthday);
+    return bday.getDate() === today.getDate() && bday.getMonth() === today.getMonth();
+  });
+
+  const toggleBulkUser = (userId) => setBulkUsers(prev => prev.includes(userId) ? prev.filter(id => id !== userId) : [...prev, userId]);
+  const selectAllUsers = () => setBulkUsers(profiles.map(p => p.id));
+
+  const handleBulkPoints = async () => {
+    if (bulkUsers.length === 0 || !bulkAction || !bulkPoints) return;
+    await onAddBulkPoints(bulkUsers, bulkAction, parseInt(bulkPoints));
+    setBulkUsers([]); setBulkAction(''); setBulkPoints('');
+    refreshProfile();
+  };
+
+  const handleSaveGoal = async () => {
+    await onCreateGoal({ name: goalForm.name, description: goalForm.description, target_points: parseInt(goalForm.target_points), reward_description: goalForm.reward_description, deadline: goalForm.deadline || null, is_active: true });
+    setGoalForm({ name: '', description: '', target_points: '', reward_description: '', deadline: '' });
+    setShowGoalForm(false);
+  };
 
   const handleAddPoints = async () => {
     if (!selectedUser || (!selectedAction && !customPoints)) return;
@@ -1065,15 +1299,32 @@ function AdminPanel({
     <div style={styles.adminContainer}>
       <h2 style={styles.pageTitle}>Admin Panel</h2>
 
+      {/* Birthday Alert */}
+      {todayBirthdays.length > 0 && (
+        <div style={styles.birthdayAlert}>
+          <strong>Vandaag jarig!</strong>
+          <div style={styles.birthdayList}>
+            {todayBirthdays.map(p => (
+              <div key={p.id} style={styles.birthdayItem}>
+                <span>{p.name}</span>
+                <button onClick={() => onGiveBirthdayBonus(p.id, p.name)} style={styles.birthdayBtn}>Geef 50 kurken</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Tabs */}
       <div style={styles.adminTabs}>
         {[
-          { id: 'social', label: `Social Claims (${pendingSocial.length})` },
-          { id: 'rewards', label: `Shop Claims (${pendingRewards.length})` },
+          { id: 'social', label: `Social (${pendingSocial.length})` },
+          { id: 'rewards', label: `Shop (${pendingRewards.length})` },
           { id: 'referrals', label: `Referrals (${pendingReferrals.length})` },
-          { id: 'points', label: 'Kurken Geven' },
-          { id: 'products', label: 'Producten Beheren' },
-          { id: 'stats', label: 'Statistieken' },
+          { id: 'points', label: 'Kurken' },
+          { id: 'bulk', label: 'Bulk' },
+          { id: 'goals', label: 'Team Goals' },
+          { id: 'products', label: 'Producten' },
+          { id: 'stats', label: 'Stats' },
         ].map(t => (
           <button 
             key={t.id} 
@@ -1277,6 +1528,120 @@ function AdminPanel({
           >
             Toekennen
           </button>
+        </div>
+      )}
+
+      {/* Bulk Points Tab */}
+      {tab === 'bulk' && (
+        <div style={styles.adminSection}>
+          <h3 style={styles.adminSectionTitle}>Bulk Kurken Toekennen</h3>
+          <p style={styles.sectionDesc}>Geef kurken aan meerdere teamleden tegelijk (bijv. na een festival)</p>
+          
+          <div style={styles.formGroup}>
+            <label style={styles.formLabel}>Selecteer teamleden</label>
+            <div style={styles.bulkUserSelect}>
+              <button onClick={selectAllUsers} style={styles.selectAllBtn}>Selecteer iedereen</button>
+              <button onClick={() => setBulkUsers([])} style={styles.selectNoneBtn}>Deselecteer alle</button>
+            </div>
+            <div style={styles.bulkUserGrid}>
+              {profiles.map(p => (
+                <div key={p.id} onClick={() => toggleBulkUser(p.id)} style={bulkUsers.includes(p.id) ? styles.bulkUserSelected : styles.bulkUserItem}>
+                  <Avatar name={p.name} url={p.avatar_url} size={24} />
+                  <span>{p.name}</span>
+                </div>
+              ))}
+            </div>
+            <span style={styles.formHint}>{bulkUsers.length} geselecteerd</span>
+          </div>
+
+          <div style={styles.formRow}>
+            <div style={styles.formGroup}>
+              <label style={styles.formLabel}>Omschrijving</label>
+              <input type="text" value={bulkAction} onChange={e => setBulkAction(e.target.value)} placeholder="Bijv. Pukkelpop 2024" style={styles.input} />
+            </div>
+            <div style={{...styles.formGroup, maxWidth: '120px'}}>
+              <label style={styles.formLabel}>Kurken p.p.</label>
+              <input type="number" value={bulkPoints} onChange={e => setBulkPoints(e.target.value)} placeholder="50" style={styles.input} />
+            </div>
+          </div>
+
+          {bulkUsers.length > 0 && bulkPoints && (
+            <div style={styles.bulkPreview}>Totaal: {bulkUsers.length} x {bulkPoints} = <strong>{bulkUsers.length * parseInt(bulkPoints || 0)} kurken</strong></div>
+          )}
+
+          <button onClick={handleBulkPoints} disabled={bulkUsers.length === 0 || !bulkAction || !bulkPoints} style={styles.primaryBtn}>
+            Toekennen aan {bulkUsers.length} teamleden
+          </button>
+        </div>
+      )}
+
+      {/* Team Goals Tab */}
+      {tab === 'goals' && (
+        <div style={styles.adminSection}>
+          <div style={styles.adminSectionHeader}>
+            <h3 style={styles.adminSectionTitle}>Team Goals</h3>
+            <button onClick={() => setShowGoalForm(true)} style={styles.addBtn}>+ Nieuw doel</button>
+          </div>
+
+          {showGoalForm && (
+            <div style={styles.productFormCard}>
+              <h4 style={styles.productFormTitle}>Nieuw teamdoel</h4>
+              <div style={styles.formGroup}>
+                <label style={styles.formLabel}>Naam</label>
+                <input type="text" value={goalForm.name} onChange={e => setGoalForm({...goalForm, name: e.target.value})} placeholder="Bijv. Zomerfestival Goal" style={styles.input} />
+              </div>
+              <div style={styles.formGroup}>
+                <label style={styles.formLabel}>Beschrijving</label>
+                <textarea value={goalForm.description} onChange={e => setGoalForm({...goalForm, description: e.target.value})} placeholder="Wat is het doel?" style={styles.textarea} rows={2} />
+              </div>
+              <div style={styles.formRow}>
+                <div style={styles.formGroup}>
+                  <label style={styles.formLabel}>Doel (kurken)</label>
+                  <input type="number" value={goalForm.target_points} onChange={e => setGoalForm({...goalForm, target_points: e.target.value})} placeholder="1000" style={styles.input} />
+                </div>
+                <div style={styles.formGroup}>
+                  <label style={styles.formLabel}>Deadline</label>
+                  <input type="date" value={goalForm.deadline} onChange={e => setGoalForm({...goalForm, deadline: e.target.value})} style={styles.input} />
+                </div>
+              </div>
+              <div style={styles.formGroup}>
+                <label style={styles.formLabel}>Beloning</label>
+                <input type="text" value={goalForm.reward_description} onChange={e => setGoalForm({...goalForm, reward_description: e.target.value})} placeholder="Bijv. Teamuitje naar een wijnbar" style={styles.input} />
+              </div>
+              <div style={styles.formActions}>
+                <button onClick={() => setShowGoalForm(false)} style={styles.secondaryBtn}>Annuleren</button>
+                <button onClick={handleSaveGoal} disabled={!goalForm.name || !goalForm.target_points} style={styles.primaryBtn}>Aanmaken</button>
+              </div>
+            </div>
+          )}
+
+          <div style={styles.adminList}>
+            {(goals || []).length === 0 ? (
+              <p style={styles.emptyText}>Nog geen team goals. Maak er een aan!</p>
+            ) : (
+              (goals || []).map(goal => {
+                const progress = Math.min(100, ((goal.current_points || 0) / goal.target_points) * 100);
+                return (
+                  <div key={goal.id} style={styles.adminCard}>
+                    <div style={styles.adminCardHeader}>
+                      <strong>{goal.name}</strong>
+                      {goal.is_completed && <span style={styles.completedBadge}>Behaald!</span>}
+                    </div>
+                    {goal.description && <p style={styles.adminCardDesc}>{goal.description}</p>}
+                    <div style={styles.shiftsTracker}>
+                      <span>{goal.current_points || 0} / {goal.target_points} kurken ({Math.round(progress)}%)</span>
+                      <div style={styles.shiftsBar}><div style={{...styles.shiftsFill, width: `${progress}%`}} /></div>
+                    </div>
+                    {goal.reward_description && <p style={{fontSize: '0.85rem', marginBottom: '0.5rem'}}><strong>Beloning:</strong> {goal.reward_description}</p>}
+                    <div style={styles.adminCardActions}>
+                      <button onClick={() => onUpdateGoal(goal.id, { current_points: (goal.current_points || 0) + 100 })} style={styles.secondaryBtn}>+100 kurken</button>
+                      <button onClick={() => onDeleteGoal(goal.id)} style={styles.deleteBtn}>Verwijder</button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
         </div>
       )}
 
@@ -1489,7 +1854,7 @@ function AdminPanel({
 // MAIN APP
 // =====================================================
 function MainApp() {
-  const { profile, signOut, refreshProfile } = useApp();
+  const { profile, signOut, refreshProfile, updateProfile } = useApp();
   const { profiles, profileStats } = useProfiles();
   const { rewards, addReward, updateReward, deleteReward } = useRewards();
   const { activities } = useActivities(profile?.id);
@@ -1498,11 +1863,14 @@ function MainApp() {
   const { referrals, submitReferral, updateReferral, completeReferral } = useReferrals();
   const { canGive, give } = useRecognitions();
   const { notifications, unreadCount, markRead } = useNotifications();
-  const { addPoints } = useAdminPoints();
+  const { addPoints, addBulkPoints, awardBadge, giveBirthdayBonus } = useAdminPoints();
+  const { badges } = useBadges(profile?.id);
+  const { goals, createGoal, updateGoal, deleteGoal } = useTeamGoals();
 
   const [view, setView] = useState('dashboard');
   const [toast, setToast] = useState(null);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showProfileEdit, setShowProfileEdit] = useState(false);
 
   const notify = (msg, type = 'success') => {
     setToast({ msg, type });
@@ -1570,6 +1938,18 @@ function MainApp() {
     refreshProfile();
   };
 
+  const handleAddBulkPoints = async (userIds, actionName, points) => {
+    await addBulkPoints(userIds, actionName, points);
+    notify(`+${points} kurken voor ${userIds.length} teamleden`);
+    refreshProfile();
+  };
+
+  const handleGiveBirthdayBonus = async (userId, userName) => {
+    await giveBirthdayBonus(userId, userName);
+    notify(`Verjaardagsbonus gegeven aan ${userName}!`);
+    refreshProfile();
+  };
+
   if (!profile) return <div style={styles.loading}>Laden...</div>;
 
   return (
@@ -1582,6 +1962,15 @@ function MainApp() {
         }}>
           {toast.msg}
         </div>
+      )}
+
+      {/* Profile Edit Modal */}
+      {showProfileEdit && (
+        <ProfileEditModal 
+          profile={profile} 
+          onClose={() => setShowProfileEdit(false)}
+          onSave={async (updates) => { await updateProfile(updates); notify('Profiel bijgewerkt!'); }}
+        />
       )}
 
       {/* Notifications Panel */}
@@ -1663,16 +2052,44 @@ function MainApp() {
         {/* DASHBOARD */}
         {view === 'dashboard' && (
           <div style={styles.dashboard}>
-            {/* Hero */}
-            <div style={styles.heroCard}>
-              <div style={styles.heroContent}>
-                <span style={styles.heroGreeting}>Welkom, {profile.name}</span>
-                <div style={styles.heroPointsRow}>
-                  <span style={styles.heroPoints}>{profile.points}</span>
-                  <span style={styles.heroLabel}>kurken</span>
+            {/* Profile Card */}
+            <div style={{ background: COLORS.darkBlue, borderRadius: '12px', padding: '1.25rem', color: COLORS.white }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ position: 'relative', cursor: 'pointer' }} onClick={() => setShowProfileEdit(true)}>
+                  <Avatar name={profile.name} url={profile.avatar_url} size={64} />
+                  <span style={{ position: 'absolute', bottom: -4, left: '50%', transform: 'translateX(-50%)', background: COLORS.accent, color: COLORS.darkBlue, fontSize: '0.6rem', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>Bewerken</span>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>Welkom terug,</span>
+                  <h2 style={{ fontFamily: 'DM Serif Display, serif', fontSize: '1.25rem', margin: '0.25rem 0' }}>{profile.name}</h2>
+                  {profile.current_streak > 0 && (
+                    <span style={{ display: 'inline-block', background: COLORS.warning, color: COLORS.darkBlue, fontSize: '0.7rem', fontWeight: 700, padding: '2px 8px', borderRadius: '10px' }}>{profile.current_streak} weken streak!</span>
+                  )}
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <span style={{ display: 'block', fontSize: '2rem', fontWeight: 700, fontFamily: 'DM Serif Display, serif' }}>{profile.points}</span>
+                  <span style={{ fontSize: '0.75rem', opacity: 0.7 }}>kurken</span>
                 </div>
               </div>
             </div>
+
+            {/* Badges */}
+            {badges.length > 0 && (
+              <div style={styles.section}>
+                <h3 style={styles.sectionTitle}>Jouw Badges</h3>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
+                  {badges.map(b => <Badge key={b.id} type={b.badge_type} size="medium" />)}
+                </div>
+              </div>
+            )}
+
+            {/* Team Goals */}
+            {goals.length > 0 && (
+              <div style={styles.section}>
+                <h3 style={styles.sectionTitle}>Team Goals</h3>
+                {goals.filter(g => !g.is_completed).slice(0, 2).map(goal => <TeamGoalCard key={goal.id} goal={goal} />)}
+              </div>
+            )}
 
             {/* Stats */}
             <div style={styles.statsRow}>
@@ -1681,12 +2098,12 @@ function MainApp() {
                 <span style={styles.statLabel}>acties</span>
               </div>
               <div style={styles.statCard}>
-                <span style={styles.statValue}>{myActivities.filter(a => a.is_high_value).length}</span>
-                <span style={styles.statLabel}>high value</span>
+                <span style={styles.statValue}>{profile.current_streak || 0}</span>
+                <span style={styles.statLabel}>streak</span>
               </div>
               <div style={styles.statCard}>
-                <span style={styles.statValue}>{rewardClaims.filter(c => c.user_id === profile.id && c.status === 'approved').length}</span>
-                <span style={styles.statLabel}>beloningen</span>
+                <span style={styles.statValue}>{badges.length}</span>
+                <span style={styles.statLabel}>badges</span>
               </div>
             </div>
 
@@ -1746,6 +2163,14 @@ function MainApp() {
           <div style={styles.teamView}>
             <h2 style={styles.pageTitle}>Team</h2>
 
+            {/* Team Goals */}
+            {goals.length > 0 && (
+              <div style={styles.section}>
+                <h3 style={styles.sectionTitle}>Team Goals</h3>
+                {goals.map(goal => <TeamGoalCard key={goal.id} goal={goal} />)}
+              </div>
+            )}
+
             {/* Recognition */}
             <div style={styles.recognitionCard}>
               <h3 style={styles.recognitionTitle}>Waardeer een collega</h3>
@@ -1760,9 +2185,10 @@ function MainApp() {
             <div style={styles.colleagueGrid}>
               {profiles.filter(p => p.id !== profile.id).map(p => (
                 <div key={p.id} style={styles.colleagueCard}>
-                  <div style={styles.colleagueAvatar}>{p.name?.charAt(0) || '?'}</div>
+                  <Avatar name={p.name} url={p.avatar_url} size={48} />
                   <h4 style={styles.colleagueName}>{p.name}</h4>
                   <span style={styles.colleaguePoints}>{p.points} kurken</span>
+                  {p.current_streak > 0 && <span style={{ background: COLORS.warning, color: COLORS.darkBlue, fontSize: '0.65rem', fontWeight: 700, padding: '2px 6px', borderRadius: '8px', marginBottom: '0.5rem' }}>{p.current_streak}w streak</span>}
                   <button 
                     onClick={() => handleGiveRecognition(p.id, p.name)}
                     disabled={!canGive()}
@@ -1823,7 +2249,7 @@ function MainApp() {
                 {[...profiles].sort((a, b) => (profileStats[b.id] || 0) - (profileStats[a.id] || 0)).map((p, i) => (
                   <div key={p.id} style={p.id === profile.id ? styles.leaderRowMe : styles.leaderRow}>
                     <span style={styles.leaderRank}>{i + 1}</span>
-                    <div style={styles.leaderAvatar}>{p.name?.charAt(0) || '?'}</div>
+                    <Avatar name={p.name} url={p.avatar_url} size={32} />
                     <div style={styles.leaderInfo}>
                       <span style={styles.leaderName}>{p.name} {p.id === profile.id && '(jij)'}</span>
                       <span style={styles.leaderSub}>Saldo: {p.points} kurken</span>
@@ -1844,6 +2270,7 @@ function MainApp() {
             rewardClaims={rewardClaims}
             referrals={referrals}
             rewards={rewards}
+            goals={goals}
             onApproveSocial={handleApproveSocial}
             onRejectSocial={handleRejectSocial}
             onApproveReward={handleApproveReward}
@@ -1851,9 +2278,14 @@ function MainApp() {
             onUpdateReferral={updateReferral}
             onCompleteReferral={completeReferral}
             onAddPoints={handleAddPoints}
+            onAddBulkPoints={handleAddBulkPoints}
             onAddReward={addReward}
             onUpdateReward={updateReward}
             onDeleteReward={deleteReward}
+            onCreateGoal={createGoal}
+            onUpdateGoal={updateGoal}
+            onDeleteGoal={deleteGoal}
+            onGiveBirthdayBonus={handleGiveBirthdayBonus}
             refreshProfile={refreshProfile}
           />
         )}
@@ -3536,6 +3968,103 @@ const styles = {
   statsTotalLabel: {
     fontSize: '0.75rem',
     opacity: 0.8
+  },
+
+  // Bulk Points
+  bulkUserSelect: {
+    display: 'flex',
+    gap: '0.5rem',
+    marginBottom: '0.75rem'
+  },
+  selectAllBtn: {
+    background: COLORS.darkBlue,
+    color: COLORS.white,
+    border: 'none',
+    padding: '0.4rem 0.75rem',
+    borderRadius: '6px',
+    fontSize: '0.75rem',
+    cursor: 'pointer',
+    fontFamily: 'Poppins, sans-serif'
+  },
+  selectNoneBtn: {
+    background: COLORS.lightGrey,
+    color: COLORS.darkGrey,
+    border: 'none',
+    padding: '0.4rem 0.75rem',
+    borderRadius: '6px',
+    fontSize: '0.75rem',
+    cursor: 'pointer',
+    fontFamily: 'Poppins, sans-serif'
+  },
+  bulkUserGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, 1fr)',
+    gap: '0.5rem',
+    maxHeight: '200px',
+    overflowY: 'auto',
+    padding: '0.5rem',
+    background: COLORS.lightGrey,
+    borderRadius: '8px'
+  },
+  bulkUserItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    padding: '0.5rem',
+    background: COLORS.white,
+    borderRadius: '6px',
+    cursor: 'pointer',
+    fontSize: '0.8rem',
+    border: '2px solid transparent'
+  },
+  bulkUserSelected: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    padding: '0.5rem',
+    background: COLORS.white,
+    borderRadius: '6px',
+    cursor: 'pointer',
+    fontSize: '0.8rem',
+    border: `2px solid ${COLORS.success}`
+  },
+  bulkPreview: {
+    background: COLORS.lightGrey,
+    borderRadius: '8px',
+    padding: '0.75rem',
+    textAlign: 'center',
+    marginBottom: '1rem',
+    fontSize: '0.9rem'
+  },
+
+  // Birthday Alert
+  birthdayAlert: {
+    background: 'linear-gradient(135deg, #f43f5e, #ec4899)',
+    borderRadius: '12px',
+    padding: '1rem',
+    color: COLORS.white,
+    marginBottom: '1rem'
+  },
+  birthdayList: {
+    marginTop: '0.75rem'
+  },
+  birthdayItem: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '0.5rem 0',
+    borderTop: '1px solid rgba(255,255,255,0.2)'
+  },
+  birthdayBtn: {
+    background: COLORS.white,
+    color: '#f43f5e',
+    border: 'none',
+    padding: '0.4rem 0.75rem',
+    borderRadius: '6px',
+    fontSize: '0.8rem',
+    fontWeight: 600,
+    cursor: 'pointer',
+    fontFamily: 'Poppins, sans-serif'
   }
 };
 
