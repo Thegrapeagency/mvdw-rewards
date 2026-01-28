@@ -101,9 +101,17 @@ const EARN_METHODS = [
   { 
     id: 'referral', 
     name: 'Collega aandragen', 
-    points: 100, 
+    points: 250, 
     description: 'Draag een nieuwe collega aan die minimaal 3 diensten werkt',
     category: 'team'
+  },
+  { 
+    id: 'client-referral', 
+    name: 'Klant/event aandragen', 
+    points: 1000, 
+    description: 'Draag een nieuwe klant of event aan (min. €750 ex btw, nieuwe klant)',
+    category: 'team',
+    highValue: true
   },
   { 
     id: 'social-like', 
@@ -115,7 +123,7 @@ const EARN_METHODS = [
   { 
     id: 'social-story', 
     name: 'Story delen', 
-    points: 10, 
+    points: 20, 
     description: 'Deel een story met @meisjesvandewijn tag',
     category: 'social'
   },
@@ -129,7 +137,7 @@ const EARN_METHODS = [
   { 
     id: 'social-video', 
     name: 'Video content', 
-    points: 100, 
+    points: 200, 
     description: 'Maak video content voor onze socials',
     category: 'social',
     highValue: true
@@ -584,7 +592,7 @@ function useReferrals() {
     await supabase.from('activities').insert({
       user_id: referral.referrer_id,
       action_name: `Collega aangedragen: ${referral.colleague_name}`,
-      points: 100,
+      points: 250,
       is_high_value: true,
       source: 'referral',
       added_by: profile.id
@@ -593,7 +601,7 @@ function useReferrals() {
     await supabase.from('notifications').insert({
       user_id: referral.referrer_id,
       type: 'points',
-      title: '+100 kurken!',
+      title: '+250 kurken!',
       message: `Referral ${referral.colleague_name} voltooid!`
     });
 
@@ -885,18 +893,33 @@ function AuthScreen() {
 // EARN SECTION COMPONENT
 // =====================================================
 function EarnSection({ onSubmitClaim, myClaims }) {
-  const [showForm, setShowForm] = useState(null);
+  const [showSocialForm, setShowSocialForm] = useState(false);
+  const [socialPlatform, setSocialPlatform] = useState('');
+  const [socialAction, setSocialAction] = useState('');
   const [description, setDescription] = useState('');
 
-  const socialActions = EARN_METHODS.filter(m => m.category === 'social');
-  const pendingCount = (type) => myClaims?.filter(c => c.description?.includes(`[${type}]`) && c.status === 'pending').length || 0;
+  const platforms = ['Instagram', 'TikTok', 'LinkedIn', 'Facebook'];
+  const actions = [
+    { id: 'like', name: 'Like/reactie', points: 5 },
+    { id: 'story', name: 'Story delen', points: 20 },
+    { id: 'post', name: 'Post plaatsen', points: 20 },
+    { id: 'video', name: 'Video content', points: 200 },
+  ];
 
-  const handleSubmit = async (action) => {
-    if (!description.trim()) return;
-    const success = await onSubmitClaim(action.id, description, action.points);
+  const selectedAction = actions.find(a => a.id === socialAction);
+  const pendingSocialCount = myClaims?.filter(c => c.status === 'pending').length || 0;
+
+  const handleSocialSubmit = async () => {
+    if (!socialPlatform || !socialAction || !description.trim()) return;
+    const actionName = selectedAction?.name || socialAction;
+    const points = selectedAction?.points || 5;
+    const fullDesc = `${socialPlatform} - ${actionName}: ${description}`;
+    const success = await onSubmitClaim(socialAction, fullDesc, points);
     if (success) {
+      setSocialPlatform('');
+      setSocialAction('');
       setDescription('');
-      setShowForm(null);
+      setShowSocialForm(false);
     }
   };
 
@@ -904,7 +927,6 @@ function EarnSection({ onSubmitClaim, myClaims }) {
     { id: 'werk', title: 'Werk', icon: 'W' },
     { id: 'ontwikkeling', title: 'Ontwikkeling', icon: 'O' },
     { id: 'team', title: 'Team', icon: 'T' },
-    { id: 'social', title: 'Social Media', icon: 'S' },
   ];
 
   return (
@@ -916,19 +938,18 @@ function EarnSection({ onSubmitClaim, myClaims }) {
           <strong>Hoe werkt het?</strong>
           <p style={styles.infoBannerText}>
             Wij kennen eens per maand de kurken toe op basis van je gewerkte diensten, trainingen en andere activiteiten. 
-            Social media claims kun je zelf indienen - wij controleren en keuren goed.
+            Social media claims kun je zelf indienen via het formulier hieronder.
           </p>
         </div>
       </div>
 
-      {/* Alle manieren per categorie */}
+      {/* Werk/Ontwikkeling/Team categorieën */}
       {categories.map(cat => (
         <div key={cat.id} style={styles.earnCategory}>
           <h3 style={styles.earnCategoryTitle}>
             <span style={styles.earnCategoryIcon}>{cat.icon}</span>
             {cat.title}
           </h3>
-          
           <div style={styles.earnList}>
             {EARN_METHODS.filter(m => m.category === cat.id).map(method => (
               <div key={method.id} style={method.highValue ? styles.earnItemHV : styles.earnItem}>
@@ -939,43 +960,84 @@ function EarnSection({ onSubmitClaim, myClaims }) {
                     <span style={styles.earnItemPoints}>+{method.points}</span>
                   </div>
                   <p style={styles.earnItemDesc}>{method.description}</p>
-                  
-                  {/* Alleen social items kunnen zelf geclaimed worden */}
-                  {method.category === 'social' && (
-                    <>
-                      {pendingCount(method.id) > 0 && (
-                        <span style={styles.pendingBadge}>{pendingCount(method.id)} in review</span>
-                      )}
-                      
-                      <button 
-                        onClick={() => setShowForm(showForm === method.id ? null : method.id)} 
-                        style={styles.claimSmallBtn}
-                      >
-                        {showForm === method.id ? 'Sluiten' : 'Aanmelden'}
-                      </button>
-
-                      {showForm === method.id && (
-                        <div style={styles.claimForm}>
-                          <textarea
-                            placeholder="Beschrijf kort wat je hebt gedaan..."
-                            value={description}
-                            onChange={e => setDescription(e.target.value)}
-                            style={styles.claimTextarea}
-                            rows={3}
-                          />
-                          <button onClick={() => handleSubmit(method)} style={styles.submitBtn} disabled={!description.trim()}>
-                            Versturen ter controle
-                          </button>
-                        </div>
-                      )}
-                    </>
-                  )}
                 </div>
               </div>
             ))}
           </div>
         </div>
       ))}
+
+      {/* Social Media - apart met dropdowns */}
+      <div style={styles.earnCategory}>
+        <h3 style={styles.earnCategoryTitle}>
+          <span style={styles.earnCategoryIcon}>S</span>
+          Social Media
+        </h3>
+        
+        <div style={styles.socialOverview}>
+          <div style={styles.socialPointsGrid}>
+            {actions.map(a => (
+              <div key={a.id} style={styles.socialPointItem}>
+                <span style={styles.socialPointName}>{a.name}</span>
+                <span style={styles.socialPointValue}>+{a.points}</span>
+              </div>
+            ))}
+          </div>
+          
+          {pendingSocialCount > 0 && (
+            <span style={styles.pendingBadge}>{pendingSocialCount} claim(s) in review</span>
+          )}
+
+          <button onClick={() => setShowSocialForm(!showSocialForm)} style={styles.claimSmallBtn}>
+            {showSocialForm ? 'Sluiten' : 'Social actie aanmelden'}
+          </button>
+
+          {showSocialForm && (
+            <div style={styles.socialClaimForm}>
+              <div style={styles.formGroup}>
+                <label style={styles.formLabel}>Platform</label>
+                <select value={socialPlatform} onChange={e => setSocialPlatform(e.target.value)} style={styles.select}>
+                  <option value="">Kies platform...</option>
+                  {platforms.map(p => <option key={p} value={p}>{p}</option>)}
+                </select>
+              </div>
+
+              <div style={styles.formGroup}>
+                <label style={styles.formLabel}>Actie</label>
+                <select value={socialAction} onChange={e => setSocialAction(e.target.value)} style={styles.select}>
+                  <option value="">Kies actie...</option>
+                  {actions.map(a => <option key={a.id} value={a.id}>{a.name} (+{a.points} kurken)</option>)}
+                </select>
+              </div>
+
+              <div style={styles.formGroup}>
+                <label style={styles.formLabel}>Toelichting</label>
+                <textarea
+                  placeholder="Bijv. link naar post of korte beschrijving..."
+                  value={description}
+                  onChange={e => setDescription(e.target.value)}
+                  style={styles.claimTextarea}
+                  rows={2}
+                />
+              </div>
+
+              {selectedAction && (
+                <div style={styles.pointsPreview}>
+                  Je claimt: <strong>+{selectedAction.points} kurken</strong>
+                </div>
+              )}
+
+              <button 
+                onClick={handleSocialSubmit} 
+                style={styles.submitBtn} 
+                disabled={!socialPlatform || !socialAction || !description.trim()}
+              >
+                Versturen ter controle
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Social Links */}
       <div style={styles.socialLinksSection}>
@@ -1173,6 +1235,7 @@ function AdminPanel({
   referrals, 
   rewards,
   goals,
+  allActivities,
   onApproveSocial, 
   onRejectSocial, 
   onApproveReward,
@@ -1195,6 +1258,9 @@ function AdminPanel({
   const [selectedAction, setSelectedAction] = useState('');
   const [customPoints, setCustomPoints] = useState('');
   const [customAction, setCustomAction] = useState('');
+  
+  // History filter
+  const [historyUser, setHistoryUser] = useState('');
   
   // Bulk points
   const [bulkUsers, setBulkUsers] = useState([]);
@@ -1325,6 +1391,7 @@ function AdminPanel({
           { id: 'goals', label: 'Team Goals' },
           { id: 'products', label: 'Producten' },
           { id: 'stats', label: 'Stats' },
+          { id: 'history', label: 'Historie' },
         ].map(t => (
           <button 
             key={t.id} 
@@ -1846,6 +1913,46 @@ function AdminPanel({
           </div>
         </div>
       )}
+
+      {/* History Tab */}
+      {tab === 'history' && (
+        <div style={styles.adminSection}>
+          <h3 style={styles.adminSectionTitle}>Transactiehistorie</h3>
+          
+          <div style={styles.formGroup}>
+            <label style={styles.formLabel}>Filter op teamlid</label>
+            <select value={historyUser} onChange={e => setHistoryUser(e.target.value)} style={styles.select}>
+              <option value="">Alle teamleden</option>
+              {profiles.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+          </div>
+
+          <div style={styles.historyList}>
+            {(allActivities || [])
+              .filter(a => !historyUser || a.user_id === historyUser)
+              .slice(0, 50)
+              .map(a => {
+                const user = profiles.find(p => p.id === a.user_id);
+                return (
+                  <div key={a.id} style={styles.historyItem}>
+                    <div style={styles.historyItemLeft}>
+                      <Avatar name={user?.name} url={user?.avatar_url} size={32} />
+                      <div>
+                        <strong style={styles.historyName}>{user?.name || 'Onbekend'}</strong>
+                        <span style={styles.historyAction}>{a.action_name}</span>
+                        <span style={styles.historyDate}>{new Date(a.created_at).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                      </div>
+                    </div>
+                    <span style={styles.historyPoints}>+{a.points}</span>
+                  </div>
+                );
+              })}
+            {(allActivities || []).length === 0 && (
+              <p style={styles.emptyText}>Nog geen transacties</p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1858,6 +1965,7 @@ function MainApp() {
   const { profiles, profileStats } = useProfiles();
   const { rewards, addReward, updateReward, deleteReward } = useRewards();
   const { activities } = useActivities(profile?.id);
+  const { activities: allActivities } = useActivities(profile?.is_admin ? null : profile?.id);
   const { claims: socialClaims, submitClaim, approveClaim, rejectClaim } = useSocialClaims();
   const { claims: rewardClaims, createClaim, updateClaim } = useRewardClaims();
   const { referrals, submitReferral, updateReferral, completeReferral } = useReferrals();
@@ -2204,7 +2312,7 @@ function MainApp() {
             <div style={styles.referralSection}>
               <h3 style={styles.sectionTitle}>Collega aandragen</h3>
               <p style={styles.sectionDesc}>
-                Draag een nieuwe collega aan en verdien 100 kurken als zij 3 shifts hebben gewerkt!
+                Draag een nieuwe collega aan en verdien 250 kurken als zij 3 shifts hebben gewerkt!
               </p>
               
               <div style={styles.referralForm}>
@@ -2233,7 +2341,7 @@ function MainApp() {
                       <span style={styles.referralStatus}>
                         {r.status === 'submitted' && 'Aangemeld'}
                         {r.status === 'active' && `${r.shifts_worked || 0}/${r.shifts_required || 3} shifts`}
-                        {r.status === 'completed' && 'Voltooid! +100 kurken'}
+                        {r.status === 'completed' && 'Voltooid! +250 kurken'}
                       </span>
                     </div>
                   ))}
@@ -2271,6 +2379,7 @@ function MainApp() {
             referrals={referrals}
             rewards={rewards}
             goals={goals}
+            allActivities={allActivities}
             onApproveSocial={handleApproveSocial}
             onRejectSocial={handleRejectSocial}
             onApproveReward={handleApproveReward}
@@ -4065,6 +4174,91 @@ const styles = {
     fontWeight: 600,
     cursor: 'pointer',
     fontFamily: 'Poppins, sans-serif'
+  },
+
+  // History
+  historyList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.5rem',
+    maxHeight: '500px',
+    overflowY: 'auto'
+  },
+  historyItem: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '0.75rem',
+    background: COLORS.lightGrey,
+    borderRadius: '8px'
+  },
+  historyItemLeft: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.75rem'
+  },
+  historyName: {
+    display: 'block',
+    fontSize: '0.9rem',
+    color: COLORS.darkBlue
+  },
+  historyAction: {
+    display: 'block',
+    fontSize: '0.85rem',
+    color: COLORS.darkGrey
+  },
+  historyDate: {
+    display: 'block',
+    fontSize: '0.7rem',
+    color: COLORS.darkGrey,
+    marginTop: '0.25rem'
+  },
+  historyPoints: {
+    fontSize: '1rem',
+    fontWeight: 700,
+    color: COLORS.success
+  },
+
+  // Social claim form
+  socialOverview: {
+    background: COLORS.lightGrey,
+    borderRadius: '12px',
+    padding: '1rem'
+  },
+  socialPointsGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, 1fr)',
+    gap: '0.5rem',
+    marginBottom: '1rem'
+  },
+  socialPointItem: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    padding: '0.5rem 0.75rem',
+    background: COLORS.white,
+    borderRadius: '6px',
+    fontSize: '0.85rem'
+  },
+  socialPointName: {
+    color: COLORS.darkGrey
+  },
+  socialPointValue: {
+    fontWeight: 600,
+    color: COLORS.success
+  },
+  socialClaimForm: {
+    marginTop: '1rem',
+    padding: '1rem',
+    background: COLORS.white,
+    borderRadius: '8px'
+  },
+  pointsPreview: {
+    padding: '0.75rem',
+    background: COLORS.lightGrey,
+    borderRadius: '6px',
+    textAlign: 'center',
+    marginBottom: '0.75rem',
+    fontSize: '0.9rem'
   }
 };
 
