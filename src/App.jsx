@@ -344,8 +344,12 @@ function useTeamGoals() {
     const { data } = await supabase.from('team_goals').select('*').eq('is_active', true).order('created_at', { ascending: false });
     setGoals(data || []);
   };
-  useEffect(() => { fetch(); }, []);
-  const createGoal = async (goal) => { await supabase.from('team_goals').insert(goal); fetch(); };
+  useEffect(() => { 
+    fetch(); 
+    const sub = supabase.channel('team_goals').on('postgres_changes', { event: '*', schema: 'public', table: 'team_goals' }, fetch).subscribe();
+    return () => sub.unsubscribe();
+  }, []);
+  const createGoal = async (goal) => { await supabase.from('team_goals').insert({ ...goal, current_points: 0 }); fetch(); };
   const updateGoal = async (id, updates) => { await supabase.from('team_goals').update(updates).eq('id', id); fetch(); };
   const deleteGoal = async (id) => { await supabase.from('team_goals').delete().eq('id', id); fetch(); };
   return { goals, createGoal, updateGoal, deleteGoal };
@@ -795,7 +799,9 @@ function ProfileEditModal({ profile, onClose, onSave }) {
 // TEAM GOAL CARD
 // =====================================================
 function TeamGoalCard({ goal }) {
-  const progress = Math.min(100, ((goal.current_points || 0) / goal.target_points) * 100);
+  const currentPoints = goal.current_points || 0;
+  const targetPoints = goal.target_points || 1;
+  const progress = Math.min(100, (currentPoints / targetPoints) * 100);
   return (
     <div style={{ background: COLORS.lightGrey, borderRadius: '12px', padding: '1rem', marginBottom: '0.75rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
@@ -808,7 +814,7 @@ function TeamGoalCard({ goal }) {
           <div style={{ height: '100%', background: COLORS.success, borderRadius: '4px', width: `${progress}%`, transition: 'width 0.5s ease' }} />
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: COLORS.darkGrey, marginTop: '0.5rem' }}>
-          <span>{goal.current_points || 0} / {goal.target_points} kurken</span>
+          <span>{currentPoints} / {goal.target_points} kurken</span>
           <span>{Math.round(progress)}%</span>
         </div>
       </div>
@@ -1562,7 +1568,7 @@ function AdminPanel({
               style={styles.select}
             >
               <option value="">Selecteer actie...</option>
-              {EARN_METHODS.filter(m => m.category !== 'social').map(m => (
+              {EARN_METHODS.map(m => (
                 <option key={m.id} value={m.id}>{m.name} (+{m.points})</option>
               ))}
             </select>
